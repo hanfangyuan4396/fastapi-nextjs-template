@@ -1,0 +1,47 @@
+services:
+  api:
+    image: xxx/fastapi-nextjs-api:main
+    pull_policy: always
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+      - WORKERS=1
+      - MIGRATION_ENABLED=true
+    volumes:
+      - ./volumes/api/.env:/api/.env
+    depends_on:
+      - postgres
+    restart: always
+
+  web:
+    image: xxx/fastapi-nextjs-web:main
+    pull_policy: always
+    environment:
+      - HOST=0.0.0.0
+      - PORT=3000
+      - NODE_ENV=production
+    depends_on:
+      - api
+    restart: always
+
+  postgres:
+    image: registry.cn-hangzhou.aliyuncs.com/hanfangyuan/postgres:15-alpine
+    ports:
+      - "35432:5432"
+    environment:
+      POSTGRES_PASSWORD: fastapi_nextjs
+      TZ: Asia/Shanghai
+    volumes:
+      - ./volumes/postgres/data:/var/lib/postgresql/data
+
+  nginx:
+    image: registry.cn-hangzhou.aliyuncs.com/hanfangyuan/nginx:latest
+    ports:
+      - "8001:80"
+    volumes:
+      - ./volumes/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./volumes/nginx/conf.d:/etc/nginx/conf.d
+    depends_on:
+      - api
+      - web
+    restart: always

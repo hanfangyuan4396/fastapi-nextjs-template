@@ -1,0 +1,32 @@
+default_language_version:
+  python: python3.12
+
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.12.8
+    hooks:
+      - id: ruff-check
+        args: ["--fix"]
+        files: ^api/
+      - id: ruff-format
+        files: ^api/
+
+  # 前端 ESLint 检查和修复（包含格式化）
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: v9.17.0
+    hooks:
+      - id: eslint
+        files: ^web/.*\.(js|jsx|ts|tsx)$
+        additional_dependencies:
+          - "eslint@^9"
+          - "eslint-config-next@15.5.0"
+          - "@eslint/eslintrc@^3"
+        args: ["--fix"]
+        language: node
+        exclude_types: [markdown]
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: end-of-file-fixer
+      - id: trailing-whitespace

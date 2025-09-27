@@ -1,0 +1,63 @@
+line-length = 120
+target-version = "py312"
+src = ["."]
+exclude = [
+  ".git",
+  ".venv",
+  "venv",
+  "build",
+  "dist",
+  "docs",
+  "__pycache__/*",
+  "migrations/*",
+]
+
+[format]
+line-ending = "lf"
+quote-style = "double"
+
+[lint]
+# 最小必要规则集（易于落地，后续可按需增强）
+select = [
+  "B",      # flake8-bugbear
+  "C4",     # flake8-comprehensions（推导式优化）
+  "E",      # pycodestyle E
+  "F",      # pyflakes
+  "FURB",   # refurb 建议
+  "I",      # isort（导入排序）
+  "N",      # pep8-naming（命名规范）
+  "PT",     # flake8-pytest-style
+  # 精选 PyLint 规则（低噪声）
+  "PLC0208", # iteration-over-set
+  "PLC0414", # useless-import-alias
+  "PLE0604", # invalid-all-object
+  "PLE0605", # invalid-all-format
+  "PLR0402", # manual-from-import
+  "PLR1711", # useless-return
+  "PLR1714", # repeated-equality-comparison
+  # RUF 精选补充
+  "RUF013", # implicit-optional
+  "RUF019", # unnecessary-key-check
+  "RUF022", # unsorted-dunder-all
+  "RUF100", # unused-noqa
+  "RUF101", # redirected-noqa
+  "RUF200", # invalid-pyproject-toml
+  # 安全与异常风格
+  "S506",   # unsafe-yaml-load
+  "S102",   # exec-builtin
+  "S307",   # suspicious-eval-usage（含 ast.literal_eval）
+  "S301",   # suspicious-pickle-usage
+  "S302",   # suspicious-marshal-usage
+  "S311",   # suspicious-non-cryptographic-random-usage
+  "SIM",    # flake8-simplify
+  "TRY400", # error-instead-of-exception
+  "TRY401", # verbose-log-message
+  "UP",     # pyupgrade
+  # 额外 pycodestyle W 类别
+  "W191",   # tab-indentation
+  "W605",   # invalid-escape-sequence
+]
+
+[lint.per-file-ignores]
+# 测试中允许 assert 与 fixture 重定义
+"tests/*" = ["S101", "F811"]

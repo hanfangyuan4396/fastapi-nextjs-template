@@ -20,7 +20,7 @@
 # 技术方案
 - 框架：Next.js 15（App Router），结合 TypeScript 以提升可维护性。
 - UI：集成 shadcn/ui，按需引入组件；当前使用默认主题，后续如有品牌规范再迭代。
-- 数据请求：使用 Next.js `fetch` 或 `react-query` 从 FastAPI 后端获取数据；统一封装 API 客户端，并将请求逻辑集中在 `web/service` 目录。
+- 数据请求：使用 Next.js `fetch` 或 `react-query` 从 FastAPI 后端获取数据；统一封装 API 客户端，并将请求逻辑集中在 `web/src/service` 目录。
 - 状态管理：优先选择 React Server Components + Client Components 的组合；必要时引入 Zustand 或 Context。
 - i18n：集成 `next-intl` 或 `next-i18next`，提供中英文文案文件，支持动态切换。
 - 布局：实现全局布局组件，含 `Navbar`、`Footer`、`main`；使用 shadcn/ui 组件构建导航与按钮。

@@ -2,9 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
 
-import { Button } from "@/components/ui/button";
+
 import { cn } from "@/lib/utils";
 
 const links = [
@@ -12,32 +11,8 @@ const links = [
   { href: "/students", label: "学生管理" },
 ];
 
-type Locale = "zh" | "en";
-
 export function Navbar() {
   const pathname = usePathname();
-  const [locale, setLocale] = useState<Locale>(() => {
-    if (typeof window === "undefined") {
-      return "zh";
-    }
-
-    const saved = window.localStorage.getItem("preferred-locale");
-
-    return saved === "en" ? "en" : "zh";
-  });
-
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    window.localStorage.setItem("preferred-locale", locale);
-    document.documentElement.lang = locale;
-  }, [locale]);
-
-  const handleToggle = () => {
-    setLocale((prev) => (prev === "zh" ? "en" : "zh"));
-  };
 
   return (
     <header className="border-b bg-background">
@@ -68,17 +43,7 @@ export function Navbar() {
           })}
         </nav>
 
-        <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="font-medium"
-            onClick={handleToggle}
-            aria-label="切换语言"
-          >
-            {locale === "zh" ? "中文" : "English"}
-          </Button>
-        </div>
+        <div className="flex items-center gap-3" />
       </div>
     </header>
   );

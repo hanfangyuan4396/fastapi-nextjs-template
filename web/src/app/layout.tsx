@@ -5,8 +5,7 @@ import { Footer } from "@/components/footer";
 import { Navbar } from "@/components/navbar";
 
 import "./globals.css";
-import { NextIntlClientProvider } from "next-intl";
-import { getMessages } from "next-intl/server";
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,18 +27,16 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const messages = await getMessages();
+
 
   return (
     <html lang="zh">
       <body
         className={`${geistSans.variable} ${geistMono.variable} flex min-h-screen flex-col antialiased`}
       >
-        <NextIntlClientProvider messages={messages}>
           <Navbar />
           <main className="flex-1">{children}</main>
           <Footer />
-        </NextIntlClientProvider>
       </body>
     </html>
   );

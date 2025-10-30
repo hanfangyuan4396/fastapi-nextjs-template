@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { NextIntlClientProvider } from "next-intl";
+import { getMessages, getLocale } from "next-intl/server";
 
 import { Footer } from "@/components/footer";
 import { Navbar } from "@/components/navbar";
@@ -27,16 +29,20 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-
+  // 获取当前语言和翻译消息
+  const locale = await getLocale();
+  const messages = await getMessages();
 
   return (
-    <html lang="zh">
+    <html lang={locale}>
       <body
         className={`${geistSans.variable} ${geistMono.variable} flex min-h-screen flex-col antialiased`}
       >
+        <NextIntlClientProvider messages={messages}>
           <Navbar />
           <main className="flex-1">{children}</main>
           <Footer />
+        </NextIntlClientProvider>
       </body>
     </html>
   );

@@ -1,0 +1,32 @@
+{
+  "title": "Student Management",
+  "table": {
+    "id": "ID",
+    "name": "Name",
+    "studentId": "Student ID",
+    "gender": "Gender",
+    "age": "Age",
+    "male": "Male",
+    "female": "Female"
+  },
+  "pagination": {
+    "total": "Total {count} items",
+    "page": "Page {current} / {total}"
+  },
+  "form": {
+    "name": "Name",
+    "studentId": "Student ID",
+    "gender": "Gender",
+    "age": "Age",
+    "namePlaceholder": "John Doe",
+    "studentIdPlaceholder": "S2025001",
+    "agePlaceholder": "18",
+    "genderPlaceholder": "Please select",
+    "submit": "Add"
+  },
+  "validation": {
+    "nameRequired": "Please enter name",
+    "genderRequired": "Please select gender",
+    "studentIdRequired": "Please enter student ID"
+  }
+}

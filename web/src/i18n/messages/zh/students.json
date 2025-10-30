@@ -1,0 +1,32 @@
+{
+  "title": "学生管理",
+  "table": {
+    "id": "ID",
+    "name": "姓名",
+    "studentId": "学号",
+    "gender": "性别",
+    "age": "年龄",
+    "male": "男",
+    "female": "女"
+  },
+  "pagination": {
+    "total": "共 {count} 条",
+    "page": "第 {current} / {total} 页"
+  },
+  "form": {
+    "name": "姓名",
+    "studentId": "学号",
+    "gender": "性别",
+    "age": "年龄",
+    "namePlaceholder": "张三",
+    "studentIdPlaceholder": "S2025001",
+    "agePlaceholder": "18",
+    "genderPlaceholder": "请选择",
+    "submit": "新增"
+  },
+  "validation": {
+    "nameRequired": "请输入姓名",
+    "genderRequired": "请选择性别",
+    "studentIdRequired": "请输入学号"
+  }
+}

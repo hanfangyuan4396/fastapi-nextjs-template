@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { useTranslations } from "next-intl";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -12,21 +13,25 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { createStudent } from "@/service/students";
 
-const schema = z.object({
-  name: z.string().min(1, "请输入姓名").max(100),
-  gender: z.enum(["male", "female"] as const, { message: "请选择性别" }),
-  student_id: z.string().min(1, "请输入学号").max(50),
-  age: z
-    .union([z.string().length(0), z.coerce.number().int().min(0).max(200)])
-    .optional()
-    .transform((v) => (typeof v === "number" ? v : null)),
-});
-
-type FormValuesOutput = z.output<typeof schema>;
-type FormValuesInput = z.input<typeof schema>;
+// Schema 将在组件内部创建，以便使用翻译
 
 export function CreateStudentDialog({ onCreated }: { onCreated?: () => void }) {
+  const t = useTranslations();
   const [submitting, setSubmitting] = useState(false);
+
+  // 创建带翻译的验证 schema
+  const schema = z.object({
+    name: z.string().min(1, t("validation.nameRequired")).max(100),
+    gender: z.enum(["male", "female"] as const, { message: t("validation.genderRequired") }),
+    student_id: z.string().min(1, t("validation.studentIdRequired")).max(50),
+    age: z
+      .union([z.string().length(0), z.coerce.number().int().min(0).max(200)])
+      .optional()
+      .transform((v) => (typeof v === "number" ? v : null)),
+  });
+
+  type FormValuesOutput = z.output<typeof schema>;
+  type FormValuesInput = z.input<typeof schema>;
 
   const form = useForm<FormValuesInput, unknown, FormValuesOutput>({
     resolver: zodResolver(schema),
@@ -62,9 +67,9 @@ export function CreateStudentDialog({ onCreated }: { onCreated?: () => void }) {
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>姓名</FormLabel>
+                <FormLabel>{t("form.name")}</FormLabel>
                 <FormControl>
-                  <Input placeholder="张三" {...field} className="w-44" />
+                  <Input placeholder={t("form.namePlaceholder")} {...field} className="w-44" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -76,9 +81,9 @@ export function CreateStudentDialog({ onCreated }: { onCreated?: () => void }) {
             name="student_id"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>学号</FormLabel>
+                <FormLabel>{t("form.studentId")}</FormLabel>
                 <FormControl>
-                  <Input placeholder="S2025001" {...field} className="w-44" />
+                  <Input placeholder={t("form.studentIdPlaceholder")} {...field} className="w-44" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -90,16 +95,16 @@ export function CreateStudentDialog({ onCreated }: { onCreated?: () => void }) {
             name="gender"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>性别</FormLabel>
+                <FormLabel>{t("form.gender")}</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger className="w-32">
-                      <SelectValue placeholder="请选择" />
+                      <SelectValue placeholder={t("form.genderPlaceholder")} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="male">男</SelectItem>
-                    <SelectItem value="female">女</SelectItem>
+                    <SelectItem value="male">{t("table.male")}</SelectItem>
+                    <SelectItem value="female">{t("table.female")}</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -112,10 +117,10 @@ export function CreateStudentDialog({ onCreated }: { onCreated?: () => void }) {
             name="age"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>年龄</FormLabel>
+                <FormLabel>{t("form.age")}</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="18"
+                    placeholder={t("form.agePlaceholder")}
                     {...field}
                     value={field.value as string}
                     className="w-28"
@@ -126,7 +131,7 @@ export function CreateStudentDialog({ onCreated }: { onCreated?: () => void }) {
             )}
           />
 
-          <Button type="submit" disabled={submitting}>新增</Button>
+          <Button type="submit" disabled={submitting}>{t("form.submit")}</Button>
         </form>
       </Form>
     </div>

@@ -1,0 +1,16 @@
+{
+  "nav": {
+    "home": "首页",
+    "students": "学生管理",
+    "siteName": "Student Manager"
+  },
+  "footer": {
+    "copyright": "© {year} Student Manager",
+    "poweredBy": "Powered by Next.js · FastAPI · shadcn/ui"
+  },
+  "common": {
+    "loading": "加载中...",
+    "noData": "暂无数据",
+    "refresh": "刷新"
+  }
+}

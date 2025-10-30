@@ -1,0 +1,5 @@
+{
+  "title": "Student Management System Template",
+  "subtitle": "A Next.js + FastAPI full-stack example, perfect for teaching and project starter.",
+  "description": "Navigate to the student management page through the navigation bar to experience basic query, pagination, and form submission features."
+}

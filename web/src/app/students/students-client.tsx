@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -25,6 +26,7 @@ import { CreateStudentDialog } from "./students-create-dialog";
 const DEFAULT_PAGE_SIZE = 10;
 
 export function StudentsClient() {
+  const t = useTranslations();
   const [items, setItems] = useState<Student[]>([]);
   const [page, setPage] = useState<number>(1);
   const [pageSize] = useState<number>(DEFAULT_PAGE_SIZE);
@@ -70,7 +72,7 @@ export function StudentsClient() {
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-3">
         <div className="text-sm text-muted-foreground">
-          共 {total} 条
+          {t("pagination.total", { count: total })}
         </div>
         <CreateStudentDialog onCreated={refresh} />
       </div>
@@ -79,11 +81,11 @@ export function StudentsClient() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[100px]">ID</TableHead>
-              <TableHead>姓名</TableHead>
-              <TableHead>学号</TableHead>
-              <TableHead>性别</TableHead>
-              <TableHead className="text-right">年龄</TableHead>
+              <TableHead className="w-[100px]">{t("table.id")}</TableHead>
+              <TableHead>{t("table.name")}</TableHead>
+              <TableHead>{t("table.studentId")}</TableHead>
+              <TableHead>{t("table.gender")}</TableHead>
+              <TableHead className="text-right">{t("table.age")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -92,21 +94,21 @@ export function StudentsClient() {
                 <TableCell>{it.id}</TableCell>
                 <TableCell>{it.name}</TableCell>
                 <TableCell>{it.student_id}</TableCell>
-                <TableCell>{it.gender}</TableCell>
+                <TableCell>{t(`table.${it.gender}`)}</TableCell>
                 <TableCell className="text-right">{it.age ?? "-"}</TableCell>
               </TableRow>
             ))}
             {items.length === 0 && !loading && (
               <TableRow>
                 <TableCell colSpan={5} className="py-6 text-center text-muted-foreground">
-                  暂无数据
+                  {t("common.noData")}
                 </TableCell>
               </TableRow>
             )}
             {loading && (
               <TableRow>
                 <TableCell colSpan={5} className="py-6 text-center text-muted-foreground">
-                  加载中...
+                  {t("common.loading")}
                 </TableCell>
               </TableRow>
             )}
@@ -116,7 +118,7 @@ export function StudentsClient() {
 
       <div className="flex items-center justify-between gap-3">
         <div className="text-sm text-muted-foreground">
-          第 {page} / {totalPages} 页
+          {t("pagination.page", { current: page, total: totalPages })}
         </div>
         <Pagination>
           <PaginationContent>
@@ -135,7 +137,7 @@ export function StudentsClient() {
 
       <div className="flex items-center justify-end">
         <Button variant="ghost" onClick={() => fetchData(page)} disabled={loading}>
-          刷新
+          {t("common.refresh")}
         </Button>
       </div>
     </div>

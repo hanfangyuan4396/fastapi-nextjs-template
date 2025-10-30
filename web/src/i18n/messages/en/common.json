@@ -1,0 +1,16 @@
+{
+  "nav": {
+    "home": "Home",
+    "students": "Students",
+    "siteName": "Student Manager"
+  },
+  "footer": {
+    "copyright": "© {year} Student Manager",
+    "poweredBy": "Powered by Next.js · FastAPI · shadcn/ui"
+  },
+  "common": {
+    "loading": "Loading...",
+    "noData": "No data",
+    "refresh": "Refresh"
+  }
+}

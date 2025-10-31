@@ -8,6 +8,18 @@ on:
       - 'api/pytest.ini'
       - 'api/requirements.txt'
       - '.github/workflows/api-tests.yaml'
+  push:
+    branches: [ main ]
+    paths:
+      - 'api/**'
+      - 'api/pytest.ini'
+      - 'api/requirements.txt'
+      - '.github/workflows/api-tests.yaml'
+  merge_group:
+    # 当使用 GitHub 合并队列 (Merge Queue) 时触发
+    # 目的：在入队后、真正合并到 main 之前再次验证测试，避免集成回归
+    # 使用前提：在仓库分支保护中启用“要求合并队列”，并将本工作流的检查设为必需
+    branches: [ main ]
 
 jobs:
   test:

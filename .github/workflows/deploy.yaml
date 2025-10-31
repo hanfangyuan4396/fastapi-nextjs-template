@@ -21,4 +21,4 @@ jobs:
           host: ${{ vars.SERVER_SSH_HOST }}
           username: ${{ secrets.SERVER_SSH_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          script: ${{ vars.SERVER_SSH_SCRIPT || 'cd services/fastapi-nextjs-template && ./fastapi-nextjs-service.sh start && docker image prune -af' }}
+          script: ${{ vars.SERVER_SSH_SCRIPT || 'cd services/fastapi-nextjs-template/docker && ./fastapi-nextjs-service.sh start && docker image prune -af' }}

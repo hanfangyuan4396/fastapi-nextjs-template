@@ -4,6 +4,8 @@ on:
   push:
     branches-ignore:
       - "main"
+  pull_request:
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
@@ -28,6 +30,8 @@ jobs:
               - 'api/**'
             web:
               - 'web/**'
+            workflow:
+              - '.github/workflows/only-build.yaml'
 
   api-build:
     runs-on: ubuntu-latest

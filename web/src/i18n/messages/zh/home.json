@@ -1,5 +1,12 @@
 {
-  "title": "学生管理系统模板",
-  "subtitle": "Next.js + FastAPI 前后端分离示例,适合作为教学与项目起点。",
-  "description": "通过导航栏进入学生管理页面,体验查询、分页与新增表单的基础能力。"
+  "title": "fastapi-nextjs-template",
+  "subtitle": "一个基于 Next.js 与 FastAPI 的全栈模板，开箱即用。",
+  "description": "内置「学生管理」示例，涵盖查询、分页与表单新增；集成 App Router、国际化与 UI 组件。内置格式检查与接口测试工作流，AI 开发友好。通过上方导航进入示例页面体验。",
+  "stack": {
+    "title": "技术栈",
+    "backend": { "label": "后端", "value": "FastAPI · SQLAlchemy 2 · Pydantic v2" },
+    "frontend": { "label": "前端", "value": "Next.js 16 · React 19 · TypeScript 5 · Tailwind CSS 4 · shadcn/ui · next-intl" },
+    "database": { "label": "数据库", "value": "PostgreSQL" },
+    "devops": { "label": "工程化", "value": "Docker Compose · Nginx 反向代理 · ESLint · Ruff · Pytest · GitHub Actions" }
+  }
 }

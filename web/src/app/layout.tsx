@@ -20,8 +20,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Student Manager",
-  description: "基于 Next.js 与 FastAPI 的学生管理系统模板",
+  title: "fastapi-nextjs-template",
+  description: "基于 Next.js 与 FastAPI 的全栈模板",
 };
 
 export default async function RootLayout({

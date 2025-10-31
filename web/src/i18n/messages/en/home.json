@@ -1,5 +1,12 @@
 {
-  "title": "Student Management System Template",
-  "subtitle": "A Next.js + FastAPI full-stack example, perfect for teaching and project starter.",
-  "description": "Navigate to the student management page through the navigation bar to experience basic query, pagination, and form submission features."
+  "title": "fastapi-nextjs-template",
+  "subtitle": "A full-stack template built with Next.js and FastAPI, ready to use.",
+  "description": "Includes a Students demo covering query, pagination and create form; integrates App Router, i18n and UI components. Built-in linting and API tests, AI-friendly development. Use the navigation above to explore.",
+  "stack": {
+    "title": "Tech Stack",
+    "backend": { "label": "Backend", "value": "FastAPI · SQLAlchemy 2 · Pydantic v2" },
+    "frontend": { "label": "Frontend", "value": "Next.js 16 · React 19 · TypeScript 5 · Tailwind CSS 4 · shadcn/ui · next-intl" },
+    "database": { "label": "Database", "value": "PostgreSQL" },
+    "devops": { "label": "Engineering", "value": "Docker Compose · Nginx reverse proxy · ESLint · Ruff · Pytest · GitHub Actions" }
+  }
 }

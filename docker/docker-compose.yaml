@@ -1,6 +1,6 @@
 services:
   api:
-    image: xxx/fastapi-nextjs-api:main
+    image: registry.cn-hangzhou.aliyuncs.com/hanfangyuan/fastapi-nextjs-api:main
     pull_policy: always
     environment:
       - HOST=0.0.0.0
@@ -14,7 +14,7 @@ services:
     restart: always
 
   web:
-    image: xxx/fastapi-nextjs-web:main
+    image: registry.cn-hangzhou.aliyuncs.com/hanfangyuan/fastapi-nextjs-web:main
     pull_policy: always
     environment:
       - HOST=0.0.0.0
@@ -25,12 +25,18 @@ services:
     restart: always
 
   postgres:
-    image: registry.cn-hangzhou.aliyuncs.com/hanfangyuan/postgres:15-alpine
+    image: registry.cn-hangzhou.aliyuncs.com/hanfangyuan/postgres:17-alpine
     ports:
       - "35432:5432"
     environment:
       POSTGRES_PASSWORD: fastapi_nextjs
       TZ: Asia/Shanghai
+    command:
+      - postgres
+      - -c
+      - max_connections=100
+      - -c
+      - idle_in_transaction_session_timeout=3600000
     volumes:
       - ./volumes/postgres/data:/var/lib/postgresql/data
 

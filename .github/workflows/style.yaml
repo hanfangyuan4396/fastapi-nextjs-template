@@ -6,9 +6,36 @@ on:
     branches: [ main ]
 
 jobs:
+  check-changes:
+    name: Determine changed scopes
+    runs-on: ubuntu-latest
+    outputs:
+      api-changed: ${{ steps.changes.outputs.api }}
+      web-changed: ${{ steps.changes.outputs.web }}
+      workflow-changed: ${{ steps.changes.outputs.workflow }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check for changes
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          base: main
+          filters: |
+            api:
+              - 'api/**'
+            web:
+              - 'web/**'
+            workflow:
+              - '.github/workflows/style.yaml'
+
   python-style:
     name: API Ruff Style
     runs-on: ubuntu-latest
+    needs: check-changes
+    if: needs.check-changes.outputs.api-changed == 'true' || needs.check-changes.outputs.workflow-changed == 'true'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -16,26 +43,15 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
 
-      - name: Check changed files
-        id: changed-files
-        uses: tj-actions/changed-files@v46
-        with:
-          files: |
-            api/**
-            .github/workflows/style.yml
-
       - name: Setup Python
-        if: steps.changed-files.outputs.any_changed == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
       - name: Install Ruff
-        if: steps.changed-files.outputs.any_changed == 'true'
         run: pip install ruff==0.12.8
 
       - name: Ruff check
-        if: steps.changed-files.outputs.any_changed == 'true'
         run: |
           ruff --version
           ruff check ./api
@@ -51,6 +67,8 @@ jobs:
   web-eslint:
     name: Web ESLint
     runs-on: ubuntu-latest
+    needs: check-changes
+    if: needs.check-changes.outputs.web-changed == 'true' || needs.check-changes.outputs.workflow-changed == 'true'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -58,16 +76,7 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
 
-      - name: Check changed files
-        id: changed-files
-        uses: tj-actions/changed-files@v46
-        with:
-          files: |
-            web/**
-            .github/workflows/style.yml
-
       - name: Setup Node.js
-        if: steps.changed-files.outputs.any_changed == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -75,12 +84,10 @@ jobs:
           cache-dependency-path: web/package-lock.json
 
       - name: Install dependencies (npm)
-        if: steps.changed-files.outputs.any_changed == 'true'
         working-directory: web
         run: npm ci
 
       - name: Run ESLint
-        if: steps.changed-files.outputs.any_changed == 'true'
         working-directory: web
         run: npm run lint -- .
 

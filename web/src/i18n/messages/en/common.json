@@ -1,6 +1,7 @@
 {
   "nav": {
     "home": "Home",
+    "student": "Student",
     "students": "Students",
     "siteName": "fastapi-nextjs-template"
   },

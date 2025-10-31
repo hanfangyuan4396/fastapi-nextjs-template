@@ -9,8 +9,8 @@ import { LocaleSwitcher } from "./locale-switcher";
 
 const links = [
   { href: "/", labelKey: "nav.home" },
-  { href: "/students", labelKey: "nav.student" },
-  { href: "/students-management", labelKey: "nav.students" },
+  { href: "/students", labelKey: "nav.students" },
+  { href: "/students-management", labelKey: "nav.studentsManagement" },
 ];
 
 export function Navbar() {

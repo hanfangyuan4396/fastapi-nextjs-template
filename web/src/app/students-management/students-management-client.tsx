@@ -25,7 +25,7 @@ import { CreateStudentDialog } from "./students-create-dialog";
 
 const DEFAULT_PAGE_SIZE = 10;
 
-export function StudentsClient() {
+export function StudentsManagementClient() {
   const t = useTranslations();
   const [items, setItems] = useState<Student[]>([]);
   const [page, setPage] = useState<number>(1);

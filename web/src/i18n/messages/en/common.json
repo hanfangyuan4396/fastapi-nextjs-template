@@ -1,8 +1,8 @@
 {
   "nav": {
     "home": "Home",
-    "student": "Student",
     "students": "Students",
+    "studentsManagement": "Students Management",
     "siteName": "fastapi-nextjs-template"
   },
   "footer": {

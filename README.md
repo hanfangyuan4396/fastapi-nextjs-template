@@ -1,5 +1,7 @@
 # fastapi-nextjs-template
 
+![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/hanfangyuan4396/claude-code-action-test?utm_source=oss&utm_medium=github&utm_campaign=hanfangyuan4396%2Fclaude-code-action-test&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
+
 ### 项目简介
 
 一个开箱即用的全栈模板：后端基于 FastAPI + SQLAlchemy + PostgreSQL，前端基于 Next.js(App Router) + React + TypeScript + Tailwind CSS。内置示例「学生管理」含列表与新增，支持 Docker 一键编排，适合作为中小型项目或学习实践的起点。

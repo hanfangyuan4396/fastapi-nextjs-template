@@ -1,5 +1,4 @@
 # 项目说明
-![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/hanfangyuan4396/claude-code-action-test?utm_source=oss&utm_medium=github&utm_campaign=hanfangyuan4396%2Fclaude-code-action-test&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
 
 本前端项目基于 Next.js 15 (App Router) 与 TypeScript，按照 `spec/frontend-student-management.md` 中的需求，用于对接 FastAPI 后端的学生管理系统。
 

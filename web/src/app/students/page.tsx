@@ -1,18 +1,41 @@
-import { getTranslations } from "next-intl/server";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 
 import { listStudents, type Student } from "@/service/students";
 
-export default async function StudentPage() {
-  const t = await getTranslations();
+export default function StudentsPage() {
+  const t = useTranslations();
+  const [items, setItems] = useState<Student[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
-  const res = await listStudents({ page: 1, page_size: 10 });
-  const items: Student[] = (res.code === 0 && res.data ? res.data.items : []) as Student[];
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await listStudents({ page: 1, page_size: 10 });
+        if (mounted && res.code === 0 && res.data) {
+          setItems(res.data.items);
+        }
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
-      <h1 className="mb-4 text-xl font-semibold">{t("nav.student")}</h1>
+      <h1 className="mb-4 text-xl font-semibold">{t("nav.students")}</h1>
 
-      {items.length === 0 ? (
+      {loading ? (
+        <div className="rounded-md border p-6 text-center text-sm text-muted-foreground">
+          {t("common.loading")}
+        </div>
+      ) : items.length === 0 ? (
         <div className="rounded-md border p-6 text-center text-sm text-muted-foreground">
           {t("common.noData")}
         </div>

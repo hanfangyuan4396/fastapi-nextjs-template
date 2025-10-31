@@ -1,8 +1,8 @@
 {
   "nav": {
     "home": "首页",
-    "student": "学生",
-    "students": "学生管理",
+    "students": "学生",
+    "studentsManagement": "学生管理",
     "siteName": "fastapi-nextjs-template"
   },
   "footer": {

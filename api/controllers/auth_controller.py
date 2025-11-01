@@ -41,7 +41,7 @@ async def login(payload: LoginRequest, request: Request, response: Response, db:
                 key="refresh_token",
                 value=refresh_token,
                 httponly=True,
-                secure=True,
+                secure=False,
                 samesite="lax",
                 max_age=max_age,
                 expires=expires_dt,
@@ -49,5 +49,39 @@ async def login(payload: LoginRequest, request: Request, response: Response, db:
             )
             # access_token 通过 JSON 返回由前端放内存并带 Authorization 使用
             # 避免将 access_token 放入 Cookie 增加 CSRF 面
+
+    return result
+
+
+@router.post("/auth/refresh", response_model=LoginResponse)
+async def refresh(request: Request, response: Response, db: DbSession = None):
+    service = AuthService()
+    cookie_token = request.cookies.get("refresh_token")
+    result = await run_in_threadpool(
+        lambda: service.refresh(
+            db=db,
+            refresh_token=cookie_token,
+            client_ip=request.client.host if request.client else None,
+            user_agent=request.headers.get("user-agent"),
+        )
+    )
+
+    if result.get("code") == 0 and result.get("data"):
+        data = result["data"]
+        refresh_token: str | None = data.pop("refresh_token", None)
+        refresh_expires_at: int | None = data.pop("refresh_expires_at", None)
+        if refresh_token and refresh_expires_at:
+            max_age = settings.REFRESH_TOKEN_EXPIRES_DAYS * 24 * 3600
+            expires_dt = datetime.fromtimestamp(refresh_expires_at, UTC)
+            response.set_cookie(
+                key="refresh_token",
+                value=refresh_token,
+                httponly=True,
+                secure=False,
+                samesite="lax",
+                max_age=max_age,
+                expires=expires_dt,
+                path="/",
+            )
 
     return result

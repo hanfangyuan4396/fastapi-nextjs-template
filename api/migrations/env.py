@@ -21,7 +21,7 @@ if str(API_ROOT) not in sys.path:
     sys.path.insert(0, str(API_ROOT))
 
 # 导入模型与配置（以 api 为根目录）
-from models.base import Base  # noqa: E402
+from models import Base  # noqa: E402  # 通过包导入，触发 models/__init__.py 侧效加载所有模型
 from utils.config import settings  # noqa: E402
 from utils.db_url import build_database_url  # noqa: E402
 

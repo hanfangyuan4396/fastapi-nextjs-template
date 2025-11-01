@@ -43,7 +43,7 @@ class User(Base):
     def to_safe_dict(self) -> dict[str, str | int | bool | None]:
         """脱敏后的字典，不包含敏感字段。"""
         return {
-            "id": self.id,
+            "id": str(self.id),
             "username": self.username,
             "role": self.role,
             "is_active": self.is_active,

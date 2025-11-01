@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, Request, Response
+from fastapi.concurrency import run_in_threadpool
 
 from schemas.auth import LoginRequest, LoginResponse
 from services.auth_service import AuthService
@@ -15,14 +16,16 @@ router = APIRouter()
 @router.post("/auth/login", response_model=LoginResponse)
 async def login(payload: LoginRequest, request: Request, response: Response, db: DbSession = None):
     service = AuthService()
-    result = service.login(
-        db=db,
-        username=payload.username,
-        password=payload.password,
-        client_ip=request.client.host if request.client else None,
-        user_agent=request.headers.get("user-agent"),
-        # Q1: device_id 需前端提供或从既有 Cookie 读取，后端无法可靠自生成
-        # 可后续通过自定义请求头/Cookie 传入
+    result = await run_in_threadpool(
+        lambda: service.login(
+            db=db,
+            username=payload.username,
+            password=payload.password,
+            client_ip=request.client.host if request.client else None,
+            user_agent=request.headers.get("user-agent"),
+            # device_id 需前端提供或从既有 Cookie 读取，后端无法可靠自生成
+            # 可后续通过自定义请求头/Cookie 传入
+        )
     )
 
     # 成功则设置 refresh_token Cookie
@@ -44,7 +47,7 @@ async def login(payload: LoginRequest, request: Request, response: Response, db:
                 expires=expires_dt,
                 path="/",
             )
-            # Q2: access_token 通过 JSON 返回由前端放内存并带 Authorization 使用
+            # access_token 通过 JSON 返回由前端放内存并带 Authorization 使用
             # 避免将 access_token 放入 Cookie 增加 CSRF 面
 
     return result

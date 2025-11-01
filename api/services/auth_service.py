@@ -6,7 +6,13 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from models import RefreshToken, User
-from utils.jwt_tokens import create_access_token, create_refresh_token, verify_token
+from utils.jwt_tokens import (
+    TokenExpiredError,
+    TokenInvalidError,
+    create_access_token,
+    create_refresh_token,
+    verify_token,
+)
 from utils.logging import get_logger
 from utils.security import verify_password
 
@@ -150,3 +156,137 @@ class AuthService:
             db.rollback()
             logger.exception("Login failed")
             return {"code": 50010, "message": "登录失败"}
+
+    # 刷新令牌：轮换与复用检测
+    def _find_root_token(self, db: Session, token: RefreshToken) -> RefreshToken:
+        current = token
+        # 追溯父链直至根（parent_jti 为 None）
+        while current.parent_jti:
+            parent = db.query(RefreshToken).filter(RefreshToken.jti == current.parent_jti).first()
+            if parent is None:
+                break
+            current = parent
+        return current
+
+    def _collect_family_jtis(self, db: Session, root_jti: str) -> set[str]:
+        # 通过逐层查询 parent_jti 构建家族成员集合（适用于小规模数据与测试场景）
+        family: set[str] = {root_jti}
+        frontier: set[str] = {root_jti}
+        while frontier:
+            children = db.query(RefreshToken).filter(RefreshToken.parent_jti.in_(list(frontier))).all()
+            next_frontier: set[str] = set()
+            for child in children:
+                if child.jti not in family:
+                    family.add(child.jti)
+                    next_frontier.add(child.jti)
+            frontier = next_frontier
+        return family
+
+    def _revoke_family(self, db: Session, any_member: RefreshToken, reason: str) -> None:
+        root = self._find_root_token(db, any_member)
+        family_jtis = self._collect_family_jtis(db, root.jti)
+        tokens = db.query(RefreshToken).filter(RefreshToken.jti.in_(list(family_jtis))).all()
+        now = datetime.now(UTC)
+        for t in tokens:
+            if not t.revoked:
+                t.mark_revoked(reason)
+            # 被复用的旧令牌若还未标记使用时间，这里顺带补记，便于审计
+            if t.jti == any_member.jti and t.used_at is None:
+                t.mark_used(now)
+        db.add_all(tokens)
+
+    def refresh(
+        self,
+        *,
+        db: Session,
+        refresh_token: str | None,
+        client_ip: str | None = None,
+        user_agent: str | None = None,
+        device_id: str | None = None,
+    ) -> dict[str, Any]:
+        """
+        刷新接口核心逻辑：
+        - 校验 refresh_token（JWT 类型/过期/签名）
+        - 复用检测：若旧 token 已 used_at，则撤销整个家族并返回 401
+        - 轮换：标记旧 token.used_at，签发新 access 与新 refresh，并插入新记录（parent_jti=旧 jti）
+        """
+        if not refresh_token:
+            return {"code": 40110, "message": "缺少刷新令牌"}
+
+        try:
+            claims = verify_token(refresh_token, "refresh")
+        except TokenExpiredError:
+            return {"code": 40111, "message": "刷新令牌已过期"}
+        except TokenInvalidError:
+            return {"code": 40110, "message": "刷新令牌无效"}
+        except Exception:
+            logger.exception("verify refresh token failed")
+            return {"code": 40110, "message": "刷新令牌无效"}
+
+        # 查找 DB 记录
+        jti = str(claims["jti"])
+        rt: RefreshToken | None = db.query(RefreshToken).filter(RefreshToken.jti == jti).first()
+        if rt is None:
+            return {"code": 40110, "message": "刷新令牌不存在"}
+
+        # 基本状态校验
+        now = datetime.now(UTC)
+        if rt.revoked:
+            return {"code": 40112, "message": "刷新令牌已撤销"}
+        if rt.is_expired(now):
+            return {"code": 40111, "message": "刷新令牌已过期"}
+
+        # 复用检测：同一刷新令牌再次使用
+        if rt.used_at is not None:
+            try:
+                self._revoke_family(db, rt, "refresh token reuse detected")
+                db.commit()
+            except Exception:
+                db.rollback()
+                logger.exception("revoke family on reuse failed")
+            return {"code": 40112, "message": "检测到刷新令牌复用，会话已撤销"}
+
+        # 正常轮换流程
+        try:
+            # 标记旧 token 已使用
+            rt.mark_used(now)
+
+            # 签发新令牌
+            user_id = claims["sub"]
+            access_token = create_access_token(user_id)
+            new_refresh = create_refresh_token(user_id)
+
+            new_claims = verify_token(new_refresh, "refresh")
+            issued_at = datetime.fromtimestamp(int(new_claims["iat"]), UTC)
+            expires_at = datetime.fromtimestamp(int(new_claims["exp"]), UTC)
+
+            new_rt = RefreshToken(
+                jti=str(new_claims["jti"]),
+                parent_jti=rt.jti,
+                user_id=rt.user_id,
+                issued_at=issued_at,
+                expires_at=expires_at,
+                revoked=False,
+                revoked_reason=None,
+                device_id=device_id,
+                ip=client_ip,
+                user_agent=user_agent,
+            )
+
+            db.add(rt)
+            db.add(new_rt)
+            db.commit()
+
+            return {
+                "code": 0,
+                "message": "ok",
+                "data": {
+                    "access_token": access_token,
+                    "refresh_token": new_refresh,
+                    "refresh_expires_at": int(expires_at.timestamp()),
+                },
+            }
+        except Exception:
+            db.rollback()
+            logger.exception("Refresh failed")
+            return {"code": 50011, "message": "刷新失败"}

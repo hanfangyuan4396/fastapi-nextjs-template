@@ -26,9 +26,12 @@ def test_seed_creates_admin_and_user(db_session):
 
 def test_seed_idempotent_skips_when_no_change(db_session):
     """
-    Verifies that calling upsert_user again with identical username, password, and role is idempotent and preserves the stored password hash.
-    
-    Creates an "admin" user, records its password hash, runs upsert_user with the same credentials a second time, and asserts that the operation reports "skipped" and the user's password_hash remains unchanged.
+    Verifies that calling upsert_user again with identical username, password, and role
+    is idempotent and preserves the stored password hash.
+
+    Creates an "admin" user, records its password hash, runs upsert_user with the same
+    credentials a second time, and asserts that the operation reports "skipped" and the
+    user's password_hash remains unchanged.
     """
     upsert_user(db_session, "admin", "123456", "admin")
     db_session.commit()
@@ -45,9 +48,13 @@ def test_seed_idempotent_skips_when_no_change(db_session):
 
 def test_seed_resets_lock_and_failures(db_session):
     """
-    Verifies that upsert_user clears failed login attempts and lock state when updating an existing account.
-    
-    Creates a user, simulates a locked/failed-login state by setting `failed_login_attempts` and `lock_until`, calls `upsert_user` with the same credentials, and asserts the operation reports `"updated"` and that `failed_login_attempts` is reset to 0 and `lock_until` is cleared.
+    Verifies that upsert_user clears failed login attempts and lock state when updating
+    an existing account.
+
+    Creates a user, simulates a locked/failed-login state by setting `failed_login_attempts`
+    and `lock_until`, calls `upsert_user` with the same credentials, and asserts the
+    operation reports `"updated"` and that `failed_login_attempts` is reset to 0 and
+    `lock_until` is cleared.
     """
     user, _ = upsert_user(db_session, "user", "123456", "user")
     db_session.commit()

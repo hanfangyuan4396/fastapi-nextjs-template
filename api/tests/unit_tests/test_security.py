@@ -16,7 +16,7 @@ def test_random_salt_hashes_differ() -> None:
     plain = "repeatable"
     h1 = hash_password(plain)
     h2 = hash_password(plain)
-    # bcrypt 含随机盐：同一明文两次哈希不应相等
+    # Argon2 含随机盐：同一明文两次哈希不应相等
     assert h1 != h2
     # 两个哈希均可被各自验证通过
     assert verify_password(plain, h1) is True

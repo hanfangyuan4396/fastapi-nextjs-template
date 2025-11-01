@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from fastapi import APIRouter, Query
+from fastapi.concurrency import run_in_threadpool
 
 from schemas.students import StudentCreateRequest, StudentsListResponse
 from services.students_service import StudentsService
@@ -18,7 +19,7 @@ async def list_students(
     db: DbSession = None,
 ) -> dict[str, Any]:
     service = StudentsService()
-    return service.list_students(db=db, page=page, page_size=page_size)
+    return await run_in_threadpool(lambda: service.list_students(db=db, page=page, page_size=page_size))
 
 
 @router.post("/students")
@@ -27,10 +28,12 @@ async def create_student(
     db: DbSession = None,
 ) -> dict[str, Any]:
     service = StudentsService()
-    return service.create_student(
-        db=db,
-        name=payload.name,
-        gender=payload.gender,
-        student_id=payload.student_id,
-        age=payload.age,
+    return await run_in_threadpool(
+        lambda: service.create_student(
+            db=db,
+            name=payload.name,
+            gender=payload.gender,
+            student_id=payload.student_id,
+            age=payload.age,
+        )
     )

@@ -46,6 +46,12 @@ class Settings:
     - DB_HOST: 数据库主机。默认 localhost
     - DB_PORT: 数据库端口。默认 5432
     - DB_DATABASE: 数据库名。默认 fastapi-nextjs
+
+    鉴权（JWT）
+    - JWT_SECRET: 签名密钥（HS256）。默认 dev-secret-change-me（请在生产环境中覆盖）
+    - JWT_ALGORITHM: 签名算法。固定 HS256
+    - ACCESS_TOKEN_EXPIRES_MINUTES: 访问令牌有效期（分钟）。默认 60
+    - REFRESH_TOKEN_EXPIRES_DAYS: 刷新令牌有效期（天）。默认 7
     """
 
     def __init__(self) -> None:
@@ -59,6 +65,13 @@ class Settings:
         self.DB_HOST: str = os.getenv("DB_HOST", "localhost")
         self.DB_PORT: str = os.getenv("DB_PORT", "5432")
         self.DB_DATABASE: str = os.getenv("DB_DATABASE", "fastapi-nextjs")
+
+        # JWT 配置
+        self.JWT_SECRET: str = os.getenv("JWT_SECRET", "dev-secret-change-me")
+        self.JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")
+        # 允许字符串或数字，统一转为 int
+        self.ACCESS_TOKEN_EXPIRES_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRES_MINUTES", "60"))
+        self.REFRESH_TOKEN_EXPIRES_DAYS: int = int(os.getenv("REFRESH_TOKEN_EXPIRES_DAYS", "7"))
 
         # 构造函数不打印日志，避免多次实例化导致重复日志
 
@@ -87,6 +100,10 @@ class Settings:
             "DB_HOST": self.DB_HOST,
             "DB_PORT": self.DB_PORT,
             "DB_DATABASE": self.DB_DATABASE,
+            "JWT_SECRET": "***" if self.JWT_SECRET else "",
+            "JWT_ALGORITHM": self.JWT_ALGORITHM,
+            "ACCESS_TOKEN_EXPIRES_MINUTES": self.ACCESS_TOKEN_EXPIRES_MINUTES,
+            "REFRESH_TOKEN_EXPIRES_DAYS": self.REFRESH_TOKEN_EXPIRES_DAYS,
         }
 
 

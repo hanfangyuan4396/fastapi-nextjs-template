@@ -13,3 +13,4 @@ psycopg[binary]==3.2.9
 alembic==1.16.4
 python-dotenv==1.1.1
 argon2-cffi==25.1.0
+PyJWT==2.10.1

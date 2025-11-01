@@ -13,4 +13,8 @@ psycopg[binary]==3.2.9
 alembic==1.16.4
 python-dotenv==1.1.1
 argon2-cffi==25.1.0
+# SECURITY: PyJWT 2.10.1 已知存在漏洞，请升级到安全版本
+# 参考安全公告（示例）：https://github.com/advisories/GHSA-xpf8-484v-j9w6
+# 建议：运行一次依赖安全扫描；若暂不能立即升级，请采取权宜控制
+# （如：强制最小密钥长度、禁用不安全算法、严格校验 alg/iss/aud 等）
 PyJWT==2.10.1

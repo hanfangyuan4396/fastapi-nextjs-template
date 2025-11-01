@@ -2,6 +2,8 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from controllers.auth_controller import router as auth_router
+
 # from controller.admin_services_controller import router as admin_services_router  # 暂时禁用：缺少 token 验证
 from controllers.echo_controller import router as echo_router
 from controllers.students_controller import router as students_router
@@ -41,6 +43,7 @@ register_exception_handlers(app)
 # 挂载路由
 app.include_router(echo_router, prefix=API_PREFIX)
 app.include_router(students_router, prefix=API_PREFIX)
+app.include_router(auth_router, prefix=API_PREFIX)
 
 if __name__ == "__main__":
     uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=False)

@@ -16,8 +16,10 @@ from utils.security import hash_password, verify_password
 def ensure_tables() -> None:
     """
     Create all ORM-mapped database tables defined on `Base`.
-    
-    Ensures the database schema for the application's models exists by invoking create_all on the module-configured engine; intended for convenient use in development and testing.
+
+    Ensures the database schema for the application's models exists by invoking
+    create_all on the module-configured engine; intended for convenient use in
+    development and testing.
     """
     Base.metadata.create_all(bind=engine)
 
@@ -25,16 +27,23 @@ def ensure_tables() -> None:
 def upsert_user(session: Session, username: str, plain_password: str, role: str) -> tuple[User, str]:
     """
     Insert a new user or update an existing user's credentials, role, and security state.
-    
-    If a user with the given username does not exist, a new User is created with the provided password (hashed), role, and default security fields. If the user exists, the function updates the role if different, replaces the stored password when the provided password does not match the existing hash, reactivates the account if inactive, and resets failed login and lock fields if present. The function does not commit the session; the caller is responsible for committing.
-    
+
+    If a user with the given username does not exist, a new User is created with the
+    provided password (hashed), role, and default security fields. If the user exists,
+    the function updates the role if different, replaces the stored password when the
+    provided password does not match the existing hash, reactivates the account if
+    inactive, and resets failed login and lock fields if present. The function does
+    not commit the session; the caller is responsible for committing.
+
     Parameters:
         username (str): The username to create or update.
         plain_password (str): The plaintext password to verify against or store (will be hashed).
         role (str): The role to assign to the user.
-    
+
     Returns:
-        tuple[User, str]: A tuple containing the User instance and an action string: `'created'` if a new user was added, `'updated'` if an existing user was modified, or `'skipped'` if no changes were necessary.
+        tuple[User, str]: A tuple containing the User instance and an action string:
+            `'created'` if a new user was added, `'updated'` if an existing user was
+            modified, or `'skipped'` if no changes were necessary.
     """
     user = session.query(User).filter_by(username=username).one_or_none()
     if user is None:
@@ -78,8 +87,12 @@ def main() -> None:
     # 初始化日志
     """
     Seed the development/test database with default user accounts and ensure required tables exist.
-    
-    Initializes logging from the LOG_LEVEL environment variable, creates any missing ORM tables, opens a database session, and inserts or updates a set of default user accounts (currently "admin" and "user" with the default password "123456" and respective roles). Commits the transaction when all seeds succeed; on error, rolls back the session, logs the exception, re-raises it, and always closes the session.
+
+    Initializes logging from the LOG_LEVEL environment variable, creates any missing ORM tables,
+    opens a database session, and inserts or updates a set of default user accounts (currently
+    "admin" and "user" with the default password "123456" and respective roles). Commits the
+    transaction when all seeds succeed; on error, rolls back the session, logs the exception,
+    re-raises it, and always closes the session.
     """
     init_logging(os.getenv("LOG_LEVEL"))
     logger = get_logger()

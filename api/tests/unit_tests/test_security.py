@@ -15,8 +15,9 @@ def test_hash_and_verify() -> None:
 def test_random_salt_hashes_differ() -> None:
     """
     Ensure hashing the same password twice produces different hashes and both verify correctly.
-    
-    Verifies that hashes generated from identical plaintext differ (due to random salt) and that each generated hash validates successfully against the original plaintext.
+
+    Verifies that hashes generated from identical plaintext differ (due to random salt)
+    and that each generated hash validates successfully against the original plaintext.
     """
     plain = "repeatable"
     h1 = hash_password(plain)

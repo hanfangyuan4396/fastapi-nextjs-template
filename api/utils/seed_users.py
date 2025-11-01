@@ -42,7 +42,7 @@ def upsert_user(session: Session, username: str, plain_password: str, role: str)
         need_update = True
 
     # 密码（若不匹配，则重置为指定默认密码）
-    if not verify_password("123456" if username in {"admin", "user"} else plain_password, user.password_hash):
+    if not verify_password(plain_password, user.password_hash):
         user.password_hash = hash_password(plain_password)
         need_update = True
 

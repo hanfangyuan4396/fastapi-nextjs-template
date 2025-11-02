@@ -1,6 +1,7 @@
 # Re-export utilities for convenience
+from core.security import hash_password, verify_password
+
 from .error_handlers import error_response, register_exception_handlers
-from .security import hash_password, verify_password
 
 __all__ = [
     "error_response",

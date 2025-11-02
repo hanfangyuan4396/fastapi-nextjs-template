@@ -6,10 +6,10 @@ from uuid import uuid4
 import jwt
 from sqlalchemy.orm import Session
 
+from core.jwt_tokens import create_refresh_token, verify_token
+from core.security import hash_password
 from models import RefreshToken, User
 from utils.config import settings
-from utils.jwt_tokens import create_refresh_token, verify_token
-from utils.security import hash_password
 
 
 def create_user(db: Session, username: str, password: str, *, role: str = "user", is_active: bool = True) -> User:

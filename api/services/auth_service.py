@@ -3,9 +3,11 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+import jwt
 from sqlalchemy.orm import Session
 
 from models import RefreshToken, User
+from utils.config import settings
 from utils.jwt_tokens import (
     TokenExpiredError,
     TokenInvalidError,
@@ -290,3 +292,68 @@ class AuthService:
             db.rollback()
             logger.exception("Refresh failed")
             return {"code": 50011, "message": "刷新失败"}
+
+    def logout(
+        self,
+        *,
+        db: Session,
+        refresh_token: str | None,
+    ) -> dict[str, Any]:
+        """
+        登出：撤销当前 refresh 家族（或当前链）。
+
+        - 若缺少/无效令牌：视为幂等操作，仍返回成功（仅清 Cookie）。
+        - 若令牌有效或仅过期：定位家族并撤销。
+        """
+        if not refresh_token:
+            return {"code": 0, "message": "ok"}
+
+        claims: dict[str, Any] | None = None
+        try:
+            # 优先严格校验；若仅过期则尝试解析以获取 jti
+            claims = verify_token(refresh_token, "refresh")
+        except TokenExpiredError:
+            try:
+                # 仅忽略过期进行解析，仍校验签名与必要字段
+                claims = jwt.decode(
+                    refresh_token,
+                    settings.JWT_SECRET,
+                    algorithms=[settings.JWT_ALGORITHM],
+                    options={
+                        "require": ["exp", "iat", "sub", "jti", "type"],
+                        "verify_exp": False,
+                        "verify_iat": False,
+                    },
+                )
+                # 类型保护
+                if claims.get("type") != "refresh":
+                    claims = None
+            except Exception:
+                claims = None
+        except TokenInvalidError:
+            claims = None
+        except Exception:
+            logger.exception("verify token in logout failed")
+            claims = None
+
+        if not claims:
+            # 无法定位令牌记录，视为成功（幂等）
+            return {"code": 0, "message": "ok"}
+
+        jti = str(claims.get("jti"))
+        if not jti:
+            return {"code": 0, "message": "ok"}
+
+        try:
+            rt: RefreshToken | None = db.query(RefreshToken).filter(RefreshToken.jti == jti).first()
+            if rt is None:
+                return {"code": 0, "message": "ok"}
+
+            self._revoke_family(db, rt, "logout")
+            db.commit()
+            return {"code": 0, "message": "ok"}
+        except Exception:
+            db.rollback()
+            logger.exception("Logout revoke failed")
+            # 出错也不暴露细节，返回通用失败码
+            return {"code": 50012, "message": "登出失败"}

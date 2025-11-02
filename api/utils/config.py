@@ -51,7 +51,7 @@ class Settings:
     - JWT_SECRET: 签名密钥（HS256）。默认 dev-secret-change-me（请在生产环境中覆盖）
     - JWT_ALGORITHM: 签名算法。固定 HS256
     - ACCESS_TOKEN_EXPIRES_MINUTES: 访问令牌有效期（分钟）。默认 60
-    - REFRESH_TOKEN_EXPIRES_DAYS: 刷新令牌有效期（天）。默认 7
+    - REFRESH_TOKEN_EXPIRES_MINUTES: 刷新令牌有效期（分钟）。默认 1440（1 天）
     """
 
     def __init__(self) -> None:
@@ -71,7 +71,7 @@ class Settings:
         self.JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")
         # 允许字符串或数字，统一转为 int
         self.ACCESS_TOKEN_EXPIRES_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRES_MINUTES", "60"))
-        self.REFRESH_TOKEN_EXPIRES_DAYS: int = int(os.getenv("REFRESH_TOKEN_EXPIRES_DAYS", "7"))
+        self.REFRESH_TOKEN_EXPIRES_MINUTES: int = int(os.getenv("REFRESH_TOKEN_EXPIRES_MINUTES", "1440"))
 
         # 构造函数不打印日志，避免多次实例化导致重复日志
 
@@ -103,7 +103,7 @@ class Settings:
             "JWT_SECRET": "***" if self.JWT_SECRET else "",
             "JWT_ALGORITHM": self.JWT_ALGORITHM,
             "ACCESS_TOKEN_EXPIRES_MINUTES": self.ACCESS_TOKEN_EXPIRES_MINUTES,
-            "REFRESH_TOKEN_EXPIRES_DAYS": self.REFRESH_TOKEN_EXPIRES_DAYS,
+            "REFRESH_TOKEN_EXPIRES_MINUTES": self.REFRESH_TOKEN_EXPIRES_MINUTES,
         }
 
 

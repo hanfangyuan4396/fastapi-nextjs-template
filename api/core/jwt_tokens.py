@@ -75,8 +75,8 @@ def create_access_token(user_id: Any) -> str:
 
 
 def create_refresh_token(user_id: Any) -> str:
-    """签发刷新令牌（有效期：settings.REFRESH_TOKEN_EXPIRES_DAYS）。"""
-    expires = timedelta(days=settings.REFRESH_TOKEN_EXPIRES_DAYS)
+    """签发刷新令牌（有效期：settings.REFRESH_TOKEN_EXPIRES_MINUTES）。"""
+    expires = timedelta(minutes=settings.REFRESH_TOKEN_EXPIRES_MINUTES)
     payload = _build_common_claims(user_id, "refresh", expires)
     token = jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM, headers={"typ": "JWT"})
     return token

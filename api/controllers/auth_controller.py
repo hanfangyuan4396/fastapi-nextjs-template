@@ -34,8 +34,8 @@ async def login(payload: LoginRequest, request: Request, response: Response, db:
         refresh_token: str | None = data.pop("refresh_token", None)
         refresh_expires_at: int | None = data.pop("refresh_expires_at", None)
         if refresh_token and refresh_expires_at:
-            # 过期与 Max-Age，7 天（由配置与令牌一致）
-            max_age = settings.REFRESH_TOKEN_EXPIRES_DAYS * 24 * 3600
+            # 过期与 Max-Age（由配置与令牌一致，分钟→秒）
+            max_age = settings.REFRESH_TOKEN_EXPIRES_MINUTES * 60
             expires_dt = datetime.fromtimestamp(refresh_expires_at, UTC)
             response.set_cookie(
                 key="refresh_token",
@@ -71,7 +71,7 @@ async def refresh(request: Request, response: Response, db: DbSession = None):
         refresh_token: str | None = data.pop("refresh_token", None)
         refresh_expires_at: int | None = data.pop("refresh_expires_at", None)
         if refresh_token and refresh_expires_at:
-            max_age = settings.REFRESH_TOKEN_EXPIRES_DAYS * 24 * 3600
+            max_age = settings.REFRESH_TOKEN_EXPIRES_MINUTES * 60
             expires_dt = datetime.fromtimestamp(refresh_expires_at, UTC)
             response.set_cookie(
                 key="refresh_token",

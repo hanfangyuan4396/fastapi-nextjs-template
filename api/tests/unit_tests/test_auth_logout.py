@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from models import RefreshToken, User
 from services.auth_service import AuthService
-from tests.utils import create_expired_refresh_token, create_user, persist_refresh
+from tests.helpers import create_expired_refresh_token, create_user, persist_refresh
 
 
 def _create_user(db, username: str, password: str) -> User:  # 兼容旧签名

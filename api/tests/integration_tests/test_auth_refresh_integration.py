@@ -4,7 +4,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from models import RefreshToken, User
-from tests.utils import create_expired_refresh_token, create_user
+from tests.helpers import create_expired_refresh_token, create_user
 
 
 def _create_user(db: Session, username: str, password: str, *, is_active: bool = True) -> User:  # 保持原签名

@@ -44,9 +44,15 @@ class RefreshToken(Base):
         Index("refresh_tokens_expires_at_idx", "expires_at"),
     )
 
+    def _as_utc(self, dt: datetime) -> datetime:
+        if dt.tzinfo is None:
+            return dt.replace(tzinfo=UTC)
+        return dt.astimezone(UTC)
+
     def is_expired(self, now: datetime | None = None) -> bool:
-        ref = now or datetime.now(UTC)
-        return ref >= self.expires_at
+        ref = self._as_utc(now) if isinstance(now, datetime) else datetime.now(UTC)
+        exp = self._as_utc(self.expires_at)
+        return ref >= exp
 
     def mark_used(self, when: datetime | None = None) -> None:
         self.used_at = when or datetime.now(UTC)

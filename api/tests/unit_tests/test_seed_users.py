@@ -1,7 +1,7 @@
 from datetime import UTC, datetime, timedelta
 
+from core.security import verify_password
 from models.users import User
-from utils.security import verify_password
 from utils.seed_users import upsert_user
 
 

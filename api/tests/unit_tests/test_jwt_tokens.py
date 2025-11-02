@@ -6,8 +6,7 @@ from datetime import UTC, datetime
 import jwt
 import pytest
 
-from utils.config import settings
-from utils.jwt_tokens import (
+from core.jwt_tokens import (
     TokenExpiredError,
     TokenInvalidError,
     TokenMissingClaimError,
@@ -17,6 +16,7 @@ from utils.jwt_tokens import (
     create_refresh_token,
     verify_token,
 )
+from utils.config import settings
 
 
 def _now_ts() -> int:

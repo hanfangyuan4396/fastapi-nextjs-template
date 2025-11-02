@@ -6,11 +6,11 @@ import os
 
 from sqlalchemy.orm import Session
 
+from core.security import hash_password, verify_password
 from models.base import Base
 from models.users import User
 from utils.db import SessionLocal, engine
 from utils.logging import get_logger, init_logging
-from utils.security import hash_password, verify_password
 
 
 def ensure_tables() -> None:

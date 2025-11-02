@@ -5,9 +5,9 @@ from datetime import UTC, datetime
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
+from core.security import hash_password
 from models import RefreshToken, User
 from services.auth_service import AuthService
-from utils.security import hash_password
 
 
 def _create_user(db: Session, username: str, password: str, *, is_active: bool = True) -> User:

@@ -32,6 +32,17 @@ function buildQuery(params?: Record<string, unknown>): string {
 type NextFetchOptions = { revalidate?: number | false; tags?: string[] };
 type FetchInit = RequestInit & { next?: NextFetchOptions; cache?: RequestCache };
 
+import { getAccessToken } from "@/lib/auth";
+
+function buildAuthHeaders(init?: FetchInit): Record<string, string> {
+  const base = (init?.headers as Record<string, string> | undefined) || {};
+  const token = getAccessToken();
+  if (token) {
+    return { ...base, Authorization: `Bearer ${token}` };
+  }
+  return base;
+}
+
 export async function httpGet<T>(
   path: string,
   params?: Record<string, unknown>,
@@ -41,9 +52,10 @@ export async function httpGet<T>(
   const res = await fetch(url, {
     ...init,
     method: "GET",
+    credentials: init?.credentials ?? "include",
     headers: {
       "Content-Type": "application/json",
-      ...(init?.headers as Record<string, string> | undefined),
+      ...buildAuthHeaders(init),
     },
   });
   const json = (await res.json()) as ApiResponse<T>;
@@ -59,9 +71,10 @@ export async function httpPost<T>(
   const res = await fetch(url, {
     ...init,
     method: "POST",
+    credentials: init?.credentials ?? "include",
     headers: {
       "Content-Type": "application/json",
-      ...(init?.headers as Record<string, string> | undefined),
+      ...buildAuthHeaders(init),
     },
     body: body === undefined ? undefined : JSON.stringify(body),
   });

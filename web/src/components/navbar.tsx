@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
 import { cn } from "@/lib/utils";
 import { LocaleSwitcher } from "./locale-switcher";
+import { logout } from "@/service/auth";
+import { clearAccessToken } from "@/lib/auth";
 
 const links = [
   { href: "/", labelKey: "nav.home" },
@@ -16,6 +18,12 @@ const links = [
 export function Navbar() {
   const pathname = usePathname();
   const t = useTranslations();
+  const router = useRouter();
+
+  // 登录页不显示导航栏
+  if (pathname === "/login" || pathname?.startsWith("/login/")) {
+    return null;
+  }
 
   return (
     <header className="border-b bg-background">
@@ -48,6 +56,19 @@ export function Navbar() {
 
         <div className="flex items-center gap-3">
           <LocaleSwitcher />
+          <button
+            className="text-sm text-muted-foreground transition-colors hover:text-primary"
+            onClick={async () => {
+              try {
+                await logout();
+              } finally {
+                clearAccessToken();
+                router.replace("/login");
+              }
+            }}
+          >
+            {t("nav.logout")}
+          </button>
         </div>
       </div>
     </header>

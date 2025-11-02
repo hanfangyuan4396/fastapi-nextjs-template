@@ -1,23 +1,14 @@
 from __future__ import annotations
 
-from datetime import UTC, datetime
-from uuid import uuid4
-
-import jwt
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from models import RefreshToken, User
-from utils.config import settings
-from utils.security import hash_password
+from tests.helpers import create_expired_refresh_token, create_user
 
 
-def _create_user(db: Session, username: str, password: str, *, is_active: bool = True) -> User:
-    user = User(username=username, password_hash=hash_password(password), role="user", is_active=is_active)
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    return user
+def _create_user(db: Session, username: str, password: str, *, is_active: bool = True) -> User:  # 保持原签名
+    return create_user(db, username, password, is_active=is_active)
 
 
 # 正常刷新：仅依赖 Cookie 中的 refresh_token，返回新 access 并轮换出新的 refresh；
@@ -87,31 +78,7 @@ def test_refresh_endpoint_reuse_revokes_family(client: TestClient, db_session: S
 # 过期刷新：携带已过期的 refresh_token 时，接口返回 40111，刷新失败。
 def test_refresh_endpoint_with_expired_token_returns_401(client: TestClient, db_session: Session) -> None:
     user = _create_user(db_session, "gina", "pw")
-
-    # 构造过期的 refresh JWT，并写入匹配的 DB 记录
-    now = int(datetime.now(UTC).timestamp())
-    payload = {
-        "sub": str(user.id),
-        "type": "refresh",
-        "jti": str(uuid4()),
-        "iat": now - 100,
-        "exp": now - 1,
-    }
-    expired_token = jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
-    rt = RefreshToken(
-        jti=payload["jti"],
-        parent_jti=None,
-        user_id=user.id,
-        issued_at=datetime.fromtimestamp(payload["iat"], UTC),
-        expires_at=datetime.fromtimestamp(payload["exp"], UTC),
-        revoked=False,
-        revoked_reason=None,
-        device_id=None,
-        ip=None,
-        user_agent=None,
-    )
-    db_session.add(rt)
-    db_session.commit()
+    expired_token, _ = create_expired_refresh_token(db_session, user)
 
     client.cookies.set("refresh_token", expired_token)
     r = client.post("/api/auth/refresh")

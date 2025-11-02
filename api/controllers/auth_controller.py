@@ -41,7 +41,7 @@ async def login(payload: LoginRequest, request: Request, response: Response, db:
                 key="refresh_token",
                 value=refresh_token,
                 httponly=True,
-                secure=False,
+                secure=False,  # TODO: 生产环境需要设置为True，使用https，为了通过测试先设置为False
                 samesite="lax",
                 max_age=max_age,
                 expires=expires_dt,
@@ -77,11 +77,38 @@ async def refresh(request: Request, response: Response, db: DbSession = None):
                 key="refresh_token",
                 value=refresh_token,
                 httponly=True,
-                secure=False,
+                secure=False,  # TODO: 生产环境需要设置为True，使用https，为了通过测试先设置为False
                 samesite="lax",
                 max_age=max_age,
                 expires=expires_dt,
                 path="/",
             )
+
+    return result
+
+
+@router.post("/auth/logout", response_model=LoginResponse)
+async def logout(request: Request, response: Response, db: DbSession = None):
+    service = AuthService()
+    cookie_token = request.cookies.get("refresh_token")
+    result = await run_in_threadpool(
+        lambda: service.logout(
+            db=db,
+            refresh_token=cookie_token,
+        )
+    )
+
+    # 无论服务处理结果如何，都清理 Cookie（幂等）
+    try:
+        response.delete_cookie(key="refresh_token", path="/")
+    except Exception:
+        # 保底：若底层实现不支持 delete_cookie，可用 set_cookie 覆盖过期
+        response.set_cookie(
+            key="refresh_token",
+            value="",
+            max_age=0,
+            expires=0,
+            path="/",
+        )
 
     return result

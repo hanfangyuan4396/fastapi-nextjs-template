@@ -4,7 +4,8 @@
     "student": "Student",
     "students": "Students",
     "studentsManagement": "Students Management",
-    "siteName": "fastapi-nextjs-template"
+    "siteName": "fastapi-nextjs-template",
+    "logout": "Logout"
   },
   "footer": {
     "copyright": "© {year} fastapi-nextjs-template",

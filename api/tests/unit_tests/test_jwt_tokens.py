@@ -43,7 +43,7 @@ def test_create_and_verify_access_refresh_tokens() -> None:
 
     # 有效期校验：exp - iat 与配置一致
     assert access_claims["exp"] - access_claims["iat"] == settings.ACCESS_TOKEN_EXPIRES_MINUTES * 60
-    assert refresh_claims["exp"] - refresh_claims["iat"] == settings.REFRESH_TOKEN_EXPIRES_DAYS * 24 * 3600
+    assert refresh_claims["exp"] - refresh_claims["iat"] == settings.REFRESH_TOKEN_EXPIRES_MINUTES * 60
 
 
 def test_verify_token_type_mismatch_raises() -> None:

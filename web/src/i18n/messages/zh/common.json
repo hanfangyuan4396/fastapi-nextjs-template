@@ -3,7 +3,8 @@
     "home": "首页",
     "students": "学生",
     "studentsManagement": "学生管理",
-    "siteName": "fastapi-nextjs-template"
+    "siteName": "fastapi-nextjs-template",
+    "logout": "退出"
   },
   "footer": {
     "copyright": "© {year} fastapi-nextjs-template",

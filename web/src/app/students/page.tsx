@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 
 import { listStudents, type Student } from "@/service/students";
+import { RequireAuth } from "@/components/RequireAuth";
 
 export default function StudentsPage() {
   const t = useTranslations();
@@ -28,7 +29,8 @@ export default function StudentsPage() {
   }, []);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
+    <RequireAuth>
+      <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
       <h1 className="mb-4 text-xl font-semibold">{t("nav.students")}</h1>
 
       {loading ? (
@@ -53,6 +55,7 @@ export default function StudentsPage() {
           </ul>
         </div>
       )}
-    </div>
+      </div>
+    </RequireAuth>
   );
 }

@@ -18,6 +18,7 @@ export default getRequestConfig(async () => {
     ...(await import(`./messages/${locale}/common.json`)).default,
     ...(await import(`./messages/${locale}/home.json`)).default,
     ...(await import(`./messages/${locale}/students.json`)).default,
+    ...(await import(`./messages/${locale}/auth.json`)).default,
   };
 
   return {

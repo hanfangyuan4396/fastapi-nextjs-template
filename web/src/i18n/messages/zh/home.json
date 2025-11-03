@@ -7,6 +7,7 @@
     "backend": { "label": "后端", "value": "FastAPI · SQLAlchemy 2 · Pydantic v2" },
     "frontend": { "label": "前端", "value": "Next.js 16 · React 19 · TypeScript 5 · Tailwind CSS 4 · shadcn/ui · next-intl" },
     "database": { "label": "数据库", "value": "PostgreSQL" },
-    "devops": { "label": "工程化", "value": "Docker Compose · Nginx 反向代理 · ESLint · Ruff · Pytest · GitHub Actions" }
+    "devops": { "label": "工程化", "value": "Docker Compose · Nginx 反向代理 · ESLint · Ruff · Pytest · GitHub Actions" },
+    "auth": { "label": "认证与鉴权", "value": "JWT · 依赖注入式鉴权（含角色控制）" }
   }
 }

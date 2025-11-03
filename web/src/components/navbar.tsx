@@ -36,7 +36,7 @@ export function Navbar() {
           {links.map((link) => {
             const isActive = link.href === "/"
               ? pathname === "/"
-              : pathname.startsWith(link.href);
+              : pathname === link.href || pathname.startsWith(link.href + "/");
 
             return (
               <Link

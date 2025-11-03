@@ -7,6 +7,7 @@
     "backend": { "label": "Backend", "value": "FastAPI · SQLAlchemy 2 · Pydantic v2" },
     "frontend": { "label": "Frontend", "value": "Next.js 16 · React 19 · TypeScript 5 · Tailwind CSS 4 · shadcn/ui · next-intl" },
     "database": { "label": "Database", "value": "PostgreSQL" },
-    "devops": { "label": "Engineering", "value": "Docker Compose · Nginx reverse proxy · ESLint · Ruff · Pytest · GitHub Actions" }
+    "devops": { "label": "Engineering", "value": "Docker Compose · Nginx reverse proxy · ESLint · Ruff · Pytest · GitHub Actions" },
+    "auth": { "label": "Auth", "value": "JWT · DI-based authorization (with roles)" }
   }
 }

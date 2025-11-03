@@ -1,6 +1,6 @@
 # fastapi-nextjs-template
 
-![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/hanfangyuan4396/claude-code-action-test?utm_source=oss&utm_medium=github&utm_campaign=hanfangyuan4396%2Fclaude-code-action-test&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
+![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/hanfangyuan4396/fastapi-nextjs-template?utm_source=oss&utm_medium=github&utm_campaign=hanfangyuan4396%2Ffastapi-nextjs-template&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
 
 ### 项目简介
 
@@ -13,6 +13,7 @@
 - **数据库**: PostgreSQL
 - **容器/编排**: Docker, Docker Compose（含 Nginx 反向代理）
 - **质量与工具**: Pytest, Ruff, ESLint, GitHub Actions
+- **认证与鉴权**: 基于 JWT 的认证与依赖注入式鉴权（含角色控制）
 
 ### 目录结构
 
@@ -25,6 +26,7 @@
 │  │  └─ students_controller.py
 │  ├─ services/              # 业务服务层
 │  │  └─ students_service.py
+│  ├─ core/                  # 认证/鉴权与安全核心层（Token、认证依赖、授权）
 │  ├─ models/                # 数据模型（SQLAlchemy）
 │  │  ├─ base.py
 │  │  └─ students.py

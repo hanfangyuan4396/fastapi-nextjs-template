@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { useTranslations } from "next-intl";
 
@@ -10,6 +10,7 @@ import { setAccessToken } from "@/lib/auth";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const t = useTranslations();
   const {
     register,
@@ -19,12 +20,18 @@ export default function LoginPage() {
 
   const [errorMsg, setErrorMsg] = useState<string>("");
 
+
   const onSubmit = handleSubmit(async (values) => {
     setErrorMsg("");
     const res = await login(values);
     if (res.code === 0 && res.data?.access_token) {
       setAccessToken(res.data.access_token);
-      router.replace("/students");
+      const raw = searchParams.get("next");
+      const nextPath =
+        raw && raw.startsWith("/") && !raw.startsWith("//") && !raw.includes("://")
+          ? raw
+          : "/";
+      router.replace(nextPath);
     } else {
       setErrorMsg(res.message || t("auth.login.error"));
     }
@@ -43,7 +50,7 @@ export default function LoginPage() {
             id="username"
             type="text"
             className="w-full rounded-md border px-3 py-2 outline-none"
-            {...register("username", { required: t("auth.login.username") })}
+            {...register("username", { required: t("auth.login.errors.usernameRequired") })}
           />
           {errors.username?.message ? (
             <p className="text-xs text-red-500">{errors.username.message}</p>
@@ -58,7 +65,7 @@ export default function LoginPage() {
             id="password"
             type="password"
             className="w-full rounded-md border px-3 py-2 outline-none"
-            {...register("password", { required: t("auth.login.password") })}
+            {...register("password", { required: t("auth.login.errors.passwordRequired") })}
           />
           {errors.password?.message ? (
             <p className="text-xs text-red-500">{errors.password.message}</p>

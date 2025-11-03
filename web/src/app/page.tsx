@@ -29,6 +29,10 @@ export default function HomePage() {
             <span className="font-medium text-foreground">{t("stack.devops.label")}: </span>
             {t("stack.devops.value")}
           </li>
+          <li>
+            <span className="font-medium text-foreground">{t("stack.auth.label")}: </span>
+            {t("stack.auth.value")}
+          </li>
         </ul>
       </section>
     </div>

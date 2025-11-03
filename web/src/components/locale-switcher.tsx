@@ -1,6 +1,7 @@
 "use client";
 
 import { useLocale } from "next-intl";
+import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { locales, type Locale } from "@/i18n/locales";
 import {
@@ -20,14 +21,15 @@ const localeNames: Record<Locale, string> = {
 export function LocaleSwitcher() {
   const locale = useLocale() as Locale;
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   const handleLocaleChange = (newLocale: string) => {
     startTransition(() => {
       // 设置 Cookie
       document.cookie = `locale=${newLocale}; path=/; max-age=${365 * 24 * 60 * 60}; SameSite=Lax`;
 
-      // 刷新页面以应用新语言
-      window.location.reload();
+      // 软刷新以应用新语言，避免丢失内存中的 access token
+      router.refresh();
     });
   };
 

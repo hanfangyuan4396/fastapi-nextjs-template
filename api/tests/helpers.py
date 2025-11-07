@@ -51,6 +51,7 @@ def create_expired_refresh_token(db: Session, user: User) -> tuple[str, RefreshT
         "jti": str(uuid4()),
         "iat": now - 100,
         "exp": now - 1,
+        "role": user.role,
     }
     token = jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
 

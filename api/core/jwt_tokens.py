@@ -53,8 +53,13 @@ def _normalize_user_id(user_id: Any) -> str:
 
 
 def _build_common_claims(
-    user_id: Any, token_type: Literal["access", "refresh"], expires_delta: timedelta
+    user_id: Any,
+    token_type: Literal["access", "refresh"],
+    expires_delta: timedelta,
+    role: str,
 ) -> dict[str, Any]:
+    if not role:
+        raise TokenMissingClaimError("role 不能为空")
     issued_at = _now()
     claims: dict[str, Any] = {
         "sub": _normalize_user_id(user_id),
@@ -62,22 +67,29 @@ def _build_common_claims(
         "jti": _uuid_str(),
         "iat": int(issued_at.timestamp()),
         "exp": int((issued_at + expires_delta).timestamp()),
+        "role": role,
     }
     return claims
 
 
-def create_access_token(user_id: Any) -> str:
-    """签发访问令牌（有效期：settings.ACCESS_TOKEN_EXPIRES_MINUTES）。"""
+def create_access_token(user_id: Any, role: str) -> str:
+    """签发访问令牌（有效期：settings.ACCESS_TOKEN_EXPIRES_MINUTES）。
+
+    增加 `role` 声明以支持前端基于角色的 UI 控制。
+    """
     expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRES_MINUTES)
-    payload = _build_common_claims(user_id, "access", expires)
+    payload = _build_common_claims(user_id, "access", expires, role)
     token = jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM, headers={"typ": "JWT"})
     return token
 
 
-def create_refresh_token(user_id: Any) -> str:
-    """签发刷新令牌（有效期：settings.REFRESH_TOKEN_EXPIRES_MINUTES）。"""
+def create_refresh_token(user_id: Any, role: str) -> str:
+    """签发刷新令牌（有效期：settings.REFRESH_TOKEN_EXPIRES_MINUTES）。
+
+    可选地携带 `role`，用于在刷新时减少数据库查询（视配置而定）。
+    """
     expires = timedelta(minutes=settings.REFRESH_TOKEN_EXPIRES_MINUTES)
-    payload = _build_common_claims(user_id, "refresh", expires)
+    payload = _build_common_claims(user_id, "refresh", expires, role)
     token = jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM, headers={"typ": "JWT"})
     return token
 

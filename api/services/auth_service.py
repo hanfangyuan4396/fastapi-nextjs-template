@@ -116,9 +116,9 @@ class AuthService:
                     return {"code": 40301, "message": "账号已锁定，请稍后再试"}
                 return {"code": 40101, "message": "用户名或密码错误"}
 
-            # 密码通过：签发令牌
-            access_token = create_access_token(user.id)
-            refresh_token = create_refresh_token(user.id)
+            # 密码通过：签发令牌，access/refresh 均携带角色
+            access_token = create_access_token(user.id, user.role)
+            refresh_token = create_refresh_token(user.id, user.role)
 
             # 解析刷新令牌以获取 jti/iat/exp（保证与 JWT 完全一致）
             claims = verify_token(refresh_token, "refresh")
@@ -255,8 +255,10 @@ class AuthService:
 
             # 签发新令牌
             user_id = claims["sub"]
-            access_token = create_access_token(user_id)
-            new_refresh = create_refresh_token(user_id)
+            # 始终信任 refresh token 中的角色（已验签与基础校验）
+            role_value = claims.get("role")
+            access_token = create_access_token(user_id, role_value)
+            new_refresh = create_refresh_token(user_id, role_value)
 
             new_claims = verify_token(new_refresh, "refresh")
             issued_at = datetime.fromtimestamp(int(new_claims["iat"]), UTC)

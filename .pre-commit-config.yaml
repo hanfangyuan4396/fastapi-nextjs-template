@@ -11,18 +11,22 @@ repos:
       - id: ruff-format
         files: ^api/
 
-  # 前端 ESLint 检查和修复（包含格式化）
+  # 前端 ESLint 检查和修复（使用远程 hook）
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v9.17.0
+    rev: v9.36.0  # 与项目中的 eslint 版本保持一致
     hooks:
       - id: eslint
-        files: ^web/.*\.(js|jsx|ts|tsx)$
+        name: eslint
+        files: ^web/.*\.[jt]sx?$  # 匹配 .js, .jsx, .ts, .tsx
+        types: [file]
+        args: ['--fix', '--config', 'web/eslint.config.mjs']
         additional_dependencies:
-          - "eslint@^9"
-          - "eslint-config-next@16.0.1"
-        args: ["--fix"]
-        language: node
-        exclude_types: [markdown]
+          - eslint@9.36.0  # 与 web/package.json 中的版本一致
+          - eslint-config-next@16.0.1
+          - typescript@5.9.2  # 与项目实际安装的版本一致
+          - '@typescript-eslint/parser@8.46.2'  # 与项目实际安装的版本一致
+          - '@typescript-eslint/eslint-plugin@8.46.2'  # 与项目实际安装的版本一致
+          - '@next/eslint-plugin-next@16.0.1'
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0

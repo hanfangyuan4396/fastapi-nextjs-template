@@ -5,6 +5,7 @@ from datetime import UTC, datetime
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
+from core.jwt_tokens import verify_token
 from core.security import hash_password
 from models import RefreshToken, User
 from services.auth_service import AuthService
@@ -36,6 +37,14 @@ def test_login_success_sets_refresh_cookie_and_returns_access(client: TestClient
     # DB 中应有一条 RefreshToken 记录
     tokens = db_session.query(RefreshToken).all()
     assert len(tokens) == 1
+
+    # access_token 与 refresh_token 均应包含 role
+    access_token = (body.get("data") or {}).get("access_token")
+    claims = verify_token(access_token, "access")
+    assert claims.get("role") == "user"
+    cookie_val = resp.cookies.get("refresh_token")
+    refresh_claims = verify_token(cookie_val, "refresh")
+    assert refresh_claims.get("role") == "user"
 
 
 def test_login_wrong_password_increments_attempts(client: TestClient, db_session: Session) -> None:

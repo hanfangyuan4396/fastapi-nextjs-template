@@ -7,18 +7,18 @@ import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { LocaleSwitcher } from "./locale-switcher";
 import { logout } from "@/service/auth";
-import { clearAccessToken } from "@/lib/auth";
+import { clearAccessToken, getCurrentUserRole } from "@/lib/auth";
 
-const links = [
+const baseLinks = [
   { href: "/", labelKey: "nav.home" },
   { href: "/students", labelKey: "nav.students" },
-  { href: "/students-management", labelKey: "nav.studentsManagement" },
 ];
 
 export function Navbar() {
   const pathname = usePathname();
   const t = useTranslations();
   const router = useRouter();
+  const role = getCurrentUserRole();
 
   // 登录页不显示导航栏
   if (pathname === "/login" || pathname?.startsWith("/login/")) {
@@ -33,7 +33,7 @@ export function Navbar() {
         </Link>
 
         <nav className="hidden items-center gap-6 text-sm font-medium sm:flex">
-          {links.map((link) => {
+          {(role === "admin" ? [...baseLinks, { href: "/students-management", labelKey: "nav.studentsManagement" }] : baseLinks).map((link) => {
             const isActive = link.href === "/"
               ? pathname === "/"
               : pathname === link.href || pathname.startsWith(link.href + "/");

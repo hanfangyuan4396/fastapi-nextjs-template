@@ -25,14 +25,14 @@ def _now_ts() -> int:
 
 def test_create_and_verify_access_refresh_tokens() -> None:
     user_id = uuid.uuid4()
-
-    access = create_access_token(user_id)
-    refresh = create_refresh_token(user_id)
+    role = "user"
+    access = create_access_token(user_id, role)
+    refresh = create_refresh_token(user_id, role)
 
     access_claims = verify_token(access, "access")
     refresh_claims = verify_token(refresh, "refresh")
 
-    # 基本字段
+    # 基本字段 + 角色
     for claims, expected_type in [(access_claims, "access"), (refresh_claims, "refresh")]:
         assert claims["type"] == expected_type
         # sub/jti 为合法 UUID
@@ -40,6 +40,7 @@ def test_create_and_verify_access_refresh_tokens() -> None:
         uuid.UUID(str(claims["jti"]))
         assert isinstance(claims["iat"], int)
         assert isinstance(claims["exp"], int)
+        assert claims["role"] == role
 
     # 有效期校验：exp - iat 与配置一致
     assert access_claims["exp"] - access_claims["iat"] == settings.ACCESS_TOKEN_EXPIRES_MINUTES * 60
@@ -47,9 +48,17 @@ def test_create_and_verify_access_refresh_tokens() -> None:
 
 
 def test_verify_token_type_mismatch_raises() -> None:
-    token = create_access_token(uuid.uuid4())
+    token = create_access_token(uuid.uuid4(), "user")
     with pytest.raises(TokenTypeError):
         verify_token(token, "refresh")
+
+
+def test_create_token_with_empty_role_raises() -> None:
+    user_id = uuid.uuid4()
+    with pytest.raises(TokenMissingClaimError):
+        _ = create_access_token(user_id, "")
+    with pytest.raises(TokenMissingClaimError):
+        _ = create_refresh_token(user_id, "")
 
 
 def test_verify_token_expired_raises() -> None:

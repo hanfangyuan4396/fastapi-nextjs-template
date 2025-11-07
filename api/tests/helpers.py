@@ -21,7 +21,7 @@ def create_user(db: Session, username: str, password: str, *, role: str = "user"
 
 
 def persist_refresh(db: Session, user: User) -> tuple[str, RefreshToken]:
-    token = create_refresh_token(user.id)
+    token = create_refresh_token(user.id, user.role)
     claims = verify_token(token, "refresh")
     issued_at = datetime.fromtimestamp(int(claims["iat"]), UTC)
     expires_at = datetime.fromtimestamp(int(claims["exp"]), UTC)

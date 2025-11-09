@@ -1,14 +1,17 @@
+# TODO: 数据库文件单独整理一个目录
+
 from __future__ import annotations
 
-from collections.abc import Generator
+from collections.abc import AsyncGenerator, Generator
 from typing import Annotated
 
 from fastapi import Depends
 from sqlalchemy import create_engine
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from .config import settings
-from .db_url import build_database_url
+from .db_url import build_async_database_url, build_database_url
 
 # 初始化数据库引擎与会话工厂（复用全局 settings，避免重复日志）
 _database_url = build_database_url()
@@ -24,6 +27,19 @@ engine = create_engine(
 )
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, expire_on_commit=False)
 
+# 异步引擎与会话（为逐步迁移到异步做准备；保持与同步版本尽量一致的连接池参数）
+_async_database_url = build_async_database_url()
+async_engine = create_async_engine(
+    _async_database_url,
+    pool_size=8,
+    max_overflow=4,
+    pool_timeout=10,
+    pool_recycle=1800,
+    pool_pre_ping=True,
+    echo=settings.LOG_LEVEL.upper() == "DEBUG",
+)
+AsyncSessionLocal = async_sessionmaker(bind=async_engine, class_=AsyncSession, expire_on_commit=False)
+
 
 def get_db() -> Generator[Session, None, None]:
     db: Session = SessionLocal()
@@ -35,3 +51,11 @@ def get_db() -> Generator[Session, None, None]:
 
 # 可复用的依赖别名，便于在控制器中注入
 DbSession = Annotated[Session, Depends(get_db)]
+
+
+async def get_async_db() -> AsyncGenerator[AsyncSession, None]:
+    async with AsyncSessionLocal() as session:
+        yield session
+
+
+AsyncDbSession = Annotated[AsyncSession, Depends(get_async_db)]

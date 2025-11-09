@@ -4,6 +4,7 @@ pydantic[email]==2.11.7
 uvicorn[standard]==0.35.0
 httpx==0.28.1
 pytest==8.4.1
+pytest-asyncio==1.2.0
 pytest-mock==3.14.1
 pytest-cov==6.2.1
 ruff==0.12.8
@@ -18,3 +19,4 @@ argon2-cffi==25.1.0
 # 建议：运行一次依赖安全扫描；若暂不能立即升级，请采取权宜控制
 # （如：强制最小密钥长度、禁用不安全算法、严格校验 alg/iss/aud 等）
 PyJWT==2.10.1
+aiosqlite==0.21.0

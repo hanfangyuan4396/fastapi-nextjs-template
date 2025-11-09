@@ -3,10 +3,9 @@
 import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 
-import { getCurrentUserRole } from "@/lib/auth";
-import type { UserRole } from "@/lib/auth";
+import { getCurrentUserRole, Role } from "@/lib/auth";
 
-export function RequireRole(props: { children: React.ReactNode; required: UserRole }) {
+export function RequireRole(props: { children: React.ReactNode; required: Role }) {
   const router = useRouter();
 
   const hasAccess = useMemo(() => {

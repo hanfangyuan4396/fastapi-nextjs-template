@@ -1,5 +1,8 @@
 export type AccessToken = string | null;
-export type UserRole = string | null;
+export enum Role {
+  Admin = "admin",
+}
+export type UserRole = Role | null;
 
 let currentAccessToken: AccessToken = null;
 let currentUserRole: UserRole = null;
@@ -22,7 +25,7 @@ function base64UrlDecode(input: string): string {
   }
 }
 
-function extractRoleFromJwt(token: string): string | null {
+function extractRoleFromJwt(token: string): Role | null {
   try {
     const parts = token.split(".");
     if (parts.length !== 3) return null;
@@ -30,7 +33,15 @@ function extractRoleFromJwt(token: string): string | null {
     if (!payloadJson) return null;
     const payload = JSON.parse(payloadJson) as { role?: unknown };
     const roleVal = payload.role;
-    return typeof roleVal === "string" && roleVal.length > 0 ? roleVal : null;
+    if (typeof roleVal === "string" && roleVal.length > 0) {
+      switch (roleVal) {
+        case Role.Admin:
+          return Role.Admin;
+        default:
+          return null;
+      }
+    }
+    return null;
   } catch {
     return null;
   }
@@ -50,7 +61,7 @@ export function getCurrentUserRole(): UserRole {
 }
 
 export function isAdmin(): boolean {
-  return currentUserRole === "admin";
+  return currentUserRole === Role.Admin;
 }
 
 export function clearAccessToken(): void {

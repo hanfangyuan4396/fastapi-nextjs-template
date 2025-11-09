@@ -14,6 +14,14 @@
   "common": {
     "loading": "Loading...",
     "noData": "No data",
-    "refresh": "Refresh"
+    "refresh": "Refresh",
+    "toast": {
+      "createSuccess": "Created successfully",
+      "createFail": "Create failed",
+      "updateSuccess": "Updated successfully",
+      "updateFail": "Update failed",
+      "deleteSuccess": "Deleted successfully",
+      "deleteFail": "Delete failed"
+    }
   }
 }

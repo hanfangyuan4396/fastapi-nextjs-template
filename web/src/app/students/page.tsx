@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 
 import { listStudents, type Student } from "@/service/students";
-import { RequireAuth } from "@/components/RequireAuth";
+import { RequireAuth } from "@/components/require-auth";
 
 export default function StudentsPage() {
   const t = useTranslations();

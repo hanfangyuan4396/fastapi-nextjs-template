@@ -5,7 +5,7 @@ import { getMessages, getLocale } from "next-intl/server";
 
 import { Footer } from "@/components/footer";
 import { Navbar } from "@/components/navbar";
-import { NotificationProvider } from "@/providers/NotificationProvider";
+import { NotificationProvider } from "@/providers/notification-provider";
 
 import "./globals.css";
 

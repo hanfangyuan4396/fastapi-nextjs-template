@@ -4,8 +4,8 @@ import { Suspense } from "react";
 import { useTranslations } from "next-intl";
 
 import { StudentsManagementClient } from "./students-management-client";
-import { RequireAuth } from "@/components/RequireAuth";
-import { RequireRole } from "@/components/RequireRole";
+import { RequireAuth } from "@/components/require-auth";
+import { RequireRole } from "@/components/require-role";
 import { Role } from "@/lib/auth";
 
 export default function StudentsManagementPage() {

@@ -69,7 +69,7 @@ export function CreateStudentDialog({ onCreated }: { onCreated?: () => void }) {
     } finally {
       setSubmitting(false);
     }
-  }, [form, onCreated]);
+  }, [form, onCreated, t]);
 
   return (
     <div className="flex items-center gap-3">

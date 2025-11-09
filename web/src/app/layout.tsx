@@ -5,6 +5,7 @@ import { getMessages, getLocale } from "next-intl/server";
 
 import { Footer } from "@/components/footer";
 import { Navbar } from "@/components/navbar";
+import { NotificationProvider } from "@/providers/NotificationProvider";
 
 import "./globals.css";
 
@@ -39,6 +40,7 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} flex min-h-screen flex-col antialiased`}
       >
         <NextIntlClientProvider messages={messages}>
+          <NotificationProvider />
           <Navbar />
           <main className="flex-1">{children}</main>
           <Footer />

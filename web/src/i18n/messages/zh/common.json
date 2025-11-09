@@ -13,6 +13,14 @@
   "common": {
     "loading": "加载中...",
     "noData": "暂无数据",
-    "refresh": "刷新"
+    "refresh": "刷新",
+    "toast": {
+      "createSuccess": "新增成功",
+      "createFail": "新增失败",
+      "updateSuccess": "更新成功",
+      "updateFail": "更新失败",
+      "deleteSuccess": "删除成功",
+      "deleteFail": "删除失败"
+    }
   }
 }

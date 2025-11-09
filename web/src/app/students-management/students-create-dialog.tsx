@@ -12,6 +12,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { createStudent } from "@/service/students";
+import { withToast } from "@/lib/withToast";
 
 // Schema 将在组件内部创建，以便使用翻译
 
@@ -48,8 +49,20 @@ export function CreateStudentDialog({ onCreated }: { onCreated?: () => void }) {
         student_id: values.student_id,
         age: values.age ?? null,
       };
-      const res = await createStudent(payload);
-      if (res.code === 0) {
+      await withToast(
+        (async () => {
+          const res = await createStudent(payload);
+          if (res.code !== 0) {
+            throw new Error(res.message || "Request failed");
+          }
+          return res;
+        })(),
+        {
+          success: t("common.toast.createSuccess"),
+          error: t("common.toast.createFail"),
+        }
+      );
+      {
         form.reset();
         onCreated?.();
       }

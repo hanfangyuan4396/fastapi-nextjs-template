@@ -61,7 +61,7 @@ class EmailVerificationService:
         digits = []
         for _ in range(length):
             # 生成一个 0-9 的数字
-            value = ord(os.urandom(1)) % 10
+            value = os.urandom(1)[0] % 10
             digits.append(str(value))
         return "".join(digits)
 

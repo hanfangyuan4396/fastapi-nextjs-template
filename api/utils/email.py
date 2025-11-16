@@ -20,14 +20,11 @@ def _ensure_email_config() -> None:
     校验邮箱验证码发送必需的配置是否存在。
 
     这些配置来自 `.env`，包括：
-    - EMAIL_VERIFICATION_FROM
     - EMAIL_VERIFICATION_SMTP_HOST
     - EMAIL_VERIFICATION_SMTP_PORT
     - EMAIL_VERIFICATION_SMTP_USER
     - EMAIL_VERIFICATION_SMTP_PASSWORD
     """
-    if not settings.EMAIL_VERIFICATION_FROM:
-        raise EmailNotConfiguredError("EMAIL_VERIFICATION_FROM 未配置")
     if not settings.EMAIL_VERIFICATION_SMTP_HOST:
         raise EmailNotConfiguredError("EMAIL_VERIFICATION_SMTP_HOST 未配置")
     if not settings.EMAIL_VERIFICATION_SMTP_USER:
@@ -49,7 +46,9 @@ def send_verification_email(email: str, code: str, expires_in_minutes: int) -> N
 
     msg = EmailMessage()
     msg["Subject"] = "邮箱验证码 / Email Verification Code"
-    msg["From"] = settings.EMAIL_VERIFICATION_FROM
+    # 部分邮箱服务商（如 163/QQ 邮箱）要求 MAIL FROM 必须与认证用户名保持一致，
+    # 因此这里直接使用 SMTP 认证用户名作为发件人地址，避免配置错误导致 501 等错误。
+    msg["From"] = settings.EMAIL_VERIFICATION_SMTP_USER
     msg["To"] = email
 
     msg.set_content(

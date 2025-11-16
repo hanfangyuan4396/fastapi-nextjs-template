@@ -81,10 +81,9 @@
 
 - **配置项**
   - `.env` 中新增或约定以下专用于邮箱验证码场景的配置项：
-    - `EMAIL_VERIFICATION_FROM`：发送方邮箱（邮箱验证码专用）。
     - `EMAIL_VERIFICATION_SMTP_HOST`：用于发送验证码邮件的 SMTP 服务器主机名。
     - `EMAIL_VERIFICATION_SMTP_PORT`：用于发送验证码邮件的 SMTP 服务器端口。
-    - `EMAIL_VERIFICATION_SMTP_USER`：用于发送验证码邮件的 SMTP 登录用户名。
+    - `EMAIL_VERIFICATION_SMTP_USER`：用于发送验证码邮件的 SMTP 登录用户名（同时作为发件人邮箱地址）。
     - `EMAIL_VERIFICATION_SMTP_PASSWORD`：用于发送验证码邮件的 SMTP 登录密码。
     - `EMAIL_VERIFICATION_CODE_EXPIRE_MINUTES`：验证码有效期（例如 10 分钟）。
   - 发送频控相关参数（如每邮箱/每 IP 的时间窗口与上限）通过应用配置文件（如 `config.py`）中的常量控制，例如：

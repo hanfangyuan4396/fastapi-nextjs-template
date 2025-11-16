@@ -80,8 +80,7 @@ class Settings:
         self.REDIS_PASSWORD: str = os.getenv("REDIS_PASSWORD", "")
 
         # 邮箱验证码配置
-        # 发件人邮箱与 SMTP 连接信息
-        self.EMAIL_VERIFICATION_FROM: str = os.getenv("EMAIL_VERIFICATION_FROM", "")
+        # 邮箱验证码 SMTP 连接信息（发件人邮箱直接使用 SMTP 用户名）
         self.EMAIL_VERIFICATION_SMTP_HOST: str = os.getenv("EMAIL_VERIFICATION_SMTP_HOST", "")
         self.EMAIL_VERIFICATION_SMTP_PORT: int = int(os.getenv("EMAIL_VERIFICATION_SMTP_PORT", "465"))
         self.EMAIL_VERIFICATION_SMTP_USER: str = os.getenv("EMAIL_VERIFICATION_SMTP_USER", "")
@@ -134,7 +133,6 @@ class Settings:
             "REDIS_PORT": self.REDIS_PORT,
             "REDIS_DB": self.REDIS_DB,
             "REDIS_PASSWORD": "***" if self.REDIS_PASSWORD else "",
-            "EMAIL_VERIFICATION_FROM": self.EMAIL_VERIFICATION_FROM,
             "EMAIL_VERIFICATION_SMTP_HOST": self.EMAIL_VERIFICATION_SMTP_HOST,
             "EMAIL_VERIFICATION_SMTP_PORT": self.EMAIL_VERIFICATION_SMTP_PORT,
             "EMAIL_VERIFICATION_SMTP_USER": "***" if self.EMAIL_VERIFICATION_SMTP_USER else "",

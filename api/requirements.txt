@@ -20,3 +20,4 @@ argon2-cffi==25.1.0
 # （如：强制最小密钥长度、禁用不安全算法、严格校验 alg/iss/aud 等）
 PyJWT==2.10.1
 aiosqlite==0.21.0
+redis==7.0.1

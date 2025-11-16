@@ -11,6 +11,7 @@ services:
       - ./volumes/api/.env:/api/.env
     depends_on:
       - postgres
+      - redis
     restart:  unless-stopped
   web:
     image: registry.cn-hangzhou.aliyuncs.com/hanfangyuan/fastapi-nextjs-web:main
@@ -44,22 +45,18 @@ services:
     ports:
       - "36379:6379"
     environment:
-      REDIS_PASSWORD: fastapi_nextjs
       TZ: Asia/Shanghai
     command:
       - redis-server
       - --requirepass
       - fastapi_nextjs
       - --save
-      - 60
-      - 1
+      - "60"
+      - "1"
       - --loglevel
       - warning
       - --protected-mode
       - yes
-      - --replicaof
-      - no
-      - one
     volumes:
       - ./volumes/redis/data:/data
     restart: unless-stopped

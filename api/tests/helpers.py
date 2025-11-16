@@ -70,3 +70,40 @@ def create_expired_refresh_token(db: Session, user: User) -> tuple[str, RefreshT
     db.add(rt)
     db.commit()
     return token, rt
+
+
+class FakeRedis:
+    """
+    简单的内存版 Redis 实现，用于测试：
+    - 支持 incr/expire/hset/hgetall/delete
+    - 忽略 TTL，仅用于逻辑校验
+    """
+
+    def __init__(self) -> None:
+        self._store: dict[str, object] = {}
+
+    async def incr(self, key: str) -> int:
+        value = int(self._store.get(key, 0)) + 1
+        self._store[key] = value
+        return value
+
+    async def expire(self, key: str, _seconds: int) -> None:
+        # 为简化测试逻辑，这里不实现真正的过期行为
+        return None
+
+    async def hset(self, key: str, mapping: dict[str, str]) -> None:
+        # 更新部分字段，保留其他字段（符合真实 Redis 行为）
+        if key not in self._store:
+            self._store[key] = {}
+        if not isinstance(self._store[key], dict):
+            self._store[key] = {}
+        self._store[key].update(mapping)
+
+    async def hgetall(self, key: str) -> dict[str, str]:
+        value = self._store.get(key)
+        if isinstance(value, dict):
+            return dict(value)
+        return {}
+
+    async def delete(self, key: str) -> None:
+        self._store.pop(key, None)

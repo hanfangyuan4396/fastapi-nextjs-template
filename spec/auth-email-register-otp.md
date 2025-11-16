@@ -65,8 +65,8 @@
     - `created_at`：创建时间。
     - `used`：是否已使用。
     - `failed_attempts`：失败次数。
-    - `max_attempts`：最大允许失败次数（如 5）。
     - `ip`、`user_agent`：可选，辅助风控。
+  - 最大允许失败次数（如 5）作为服务类的类变量 `MAX_ATTEMPTS`，不存储到 Redis。
   - 通过 Redis TTL 自动过期，不需要额外的定期清理任务，也不单独持久化过期时间字段。
 
 - **与现有 `users` 表关系**

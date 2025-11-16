@@ -73,6 +73,32 @@ class Settings:
         self.ACCESS_TOKEN_EXPIRES_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRES_MINUTES", "60"))
         self.REFRESH_TOKEN_EXPIRES_MINUTES: int = int(os.getenv("REFRESH_TOKEN_EXPIRES_MINUTES", "1440"))
 
+        # Redis 配置（用于邮箱验证码等功能）
+        self.REDIS_HOST: str = os.getenv("REDIS_HOST", "localhost")
+        self.REDIS_PORT: int = int(os.getenv("REDIS_PORT", "6379"))
+        self.REDIS_DB: int = int(os.getenv("REDIS_DB", "0"))
+        self.REDIS_PASSWORD: str = os.getenv("REDIS_PASSWORD", "")
+
+        # 邮箱验证码配置
+        # 发件人邮箱与 SMTP 连接信息
+        self.EMAIL_VERIFICATION_FROM: str = os.getenv("EMAIL_VERIFICATION_FROM", "")
+        self.EMAIL_VERIFICATION_SMTP_HOST: str = os.getenv("EMAIL_VERIFICATION_SMTP_HOST", "")
+        self.EMAIL_VERIFICATION_SMTP_PORT: int = int(os.getenv("EMAIL_VERIFICATION_SMTP_PORT", "465"))
+        self.EMAIL_VERIFICATION_SMTP_USER: str = os.getenv("EMAIL_VERIFICATION_SMTP_USER", "")
+        self.EMAIL_VERIFICATION_SMTP_PASSWORD: str = os.getenv("EMAIL_VERIFICATION_SMTP_PASSWORD", "")
+
+        # 验证码有效期与频控参数
+        self.EMAIL_VERIFICATION_CODE_EXPIRE_MINUTES: int = int(os.getenv("EMAIL_VERIFICATION_CODE_EXPIRE_MINUTES", "5"))
+        # 频率限制参数：为避免配置项过多，采用代码内默认值，可视需要再抽到环境变量
+        # EMAIL_VERIFICATION_RATE_LIMIT_PER_EMAIL:
+        #   - 含义：单个邮箱在一个短时间窗口内（目前实现为 60 秒）允许请求发送验证码的最大次数
+        #   - 示例：默认值 5，表示同一邮箱在任意连续 60 秒内最多发送 5 次验证码请求
+        self.EMAIL_VERIFICATION_RATE_LIMIT_PER_EMAIL: int = 5
+        # EMAIL_VERIFICATION_RATE_LIMIT_PER_IP:
+        #   - 含义：同一 IP 在一个短时间窗口内（目前实现为 60 秒）允许请求发送验证码的最大次数
+        #   - 示例：默认值 50，表示同一 IP 在任意连续 60 秒内最多发送 50 次验证码请求
+        self.EMAIL_VERIFICATION_RATE_LIMIT_PER_IP: int = 50
+
         # 构造函数不打印日志，避免多次实例化导致重复日志
 
         # 配置完整性校验
@@ -104,6 +130,18 @@ class Settings:
             "JWT_ALGORITHM": self.JWT_ALGORITHM,
             "ACCESS_TOKEN_EXPIRES_MINUTES": self.ACCESS_TOKEN_EXPIRES_MINUTES,
             "REFRESH_TOKEN_EXPIRES_MINUTES": self.REFRESH_TOKEN_EXPIRES_MINUTES,
+            "REDIS_HOST": self.REDIS_HOST,
+            "REDIS_PORT": self.REDIS_PORT,
+            "REDIS_DB": self.REDIS_DB,
+            "REDIS_PASSWORD": "***" if self.REDIS_PASSWORD else "",
+            "EMAIL_VERIFICATION_FROM": self.EMAIL_VERIFICATION_FROM,
+            "EMAIL_VERIFICATION_SMTP_HOST": self.EMAIL_VERIFICATION_SMTP_HOST,
+            "EMAIL_VERIFICATION_SMTP_PORT": self.EMAIL_VERIFICATION_SMTP_PORT,
+            "EMAIL_VERIFICATION_SMTP_USER": "***" if self.EMAIL_VERIFICATION_SMTP_USER else "",
+            "EMAIL_VERIFICATION_SMTP_PASSWORD": "***" if self.EMAIL_VERIFICATION_SMTP_PASSWORD else "",
+            "EMAIL_VERIFICATION_CODE_EXPIRE_MINUTES": self.EMAIL_VERIFICATION_CODE_EXPIRE_MINUTES,
+            "EMAIL_VERIFICATION_RATE_LIMIT_PER_EMAIL": self.EMAIL_VERIFICATION_RATE_LIMIT_PER_EMAIL,
+            "EMAIL_VERIFICATION_RATE_LIMIT_PER_IP": self.EMAIL_VERIFICATION_RATE_LIMIT_PER_IP,
         }
 
 

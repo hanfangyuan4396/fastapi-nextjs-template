@@ -57,9 +57,6 @@ services:
       - warning
       - --protected-mode
       - yes
-      - --replicaof
-      - no
-      - one
     volumes:
       - ./volumes/redis/data:/data
     restart: unless-stopped

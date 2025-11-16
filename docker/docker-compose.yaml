@@ -11,8 +11,7 @@ services:
       - ./volumes/api/.env:/api/.env
     depends_on:
       - postgres
-    restart: always
-
+    restart:  unless-stopped
   web:
     image: registry.cn-hangzhou.aliyuncs.com/hanfangyuan/fastapi-nextjs-web:main
     pull_policy: always
@@ -22,7 +21,7 @@ services:
       - NODE_ENV=production
     depends_on:
       - api
-    restart: always
+    restart: unless-stopped
 
   postgres:
     image: registry.cn-hangzhou.aliyuncs.com/hanfangyuan/postgres:17-alpine
@@ -40,6 +39,31 @@ services:
     volumes:
       - ./volumes/postgres/data:/var/lib/postgresql/data
 
+  redis:
+    image: registry.cn-hangzhou.aliyuncs.com/hanfangyuan/redis:8.0-alpine
+    ports:
+      - "36379:6379"
+    environment:
+      REDIS_PASSWORD: fastapi_nextjs
+      TZ: Asia/Shanghai
+    command:
+      - redis-server
+      - --requirepass
+      - fastapi_nextjs
+      - --save
+      - 60
+      - 1
+      - --loglevel
+      - warning
+      - --protected-mode
+      - yes
+      - --replicaof
+      - no
+      - one
+    volumes:
+      - ./volumes/redis/data:/data
+    restart: unless-stopped
+
   nginx:
     image: registry.cn-hangzhou.aliyuncs.com/hanfangyuan/nginx:latest
     ports:
@@ -50,4 +74,4 @@ services:
     depends_on:
       - api
       - web
-    restart: always
+    restart: unless-stopped

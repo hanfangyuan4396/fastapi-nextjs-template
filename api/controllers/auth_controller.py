@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from typing import Any
 
 from fastapi import APIRouter, Request, Response
 from fastapi.concurrency import run_in_threadpool
@@ -17,15 +18,40 @@ from services.email_verification_service import EmailVerificationService
 from services.registration_service import RegistrationService
 from utils.config import settings
 from utils.db import AsyncDbSession, DbSession
+from utils.request import get_client_ip
 
 router = APIRouter()
+
+
+def _set_refresh_token_cookie(response: Response, result: dict[str, Any]) -> None:
+    """
+    根据服务返回结果，统一从 data 中提取 refresh_token 与过期时间，
+    设置到响应 Cookie，并从数据中移除这两个字段，避免通过 JSON 返回。
+    """
+    if result.get("code") == 0 and result.get("data"):
+        data = result["data"]
+        refresh_token: str | None = data.pop("refresh_token", None)
+        refresh_expires_at: int | None = data.pop("refresh_expires_at", None)
+        if refresh_token and refresh_expires_at:
+            max_age = settings.REFRESH_TOKEN_EXPIRES_MINUTES * 60
+            expires_dt = datetime.fromtimestamp(refresh_expires_at, UTC)
+            response.set_cookie(
+                key="refresh_token",
+                value=refresh_token,
+                httponly=True,
+                secure=False,  # TODO: 生产环境需要设置为True，使用https，为了通过测试先设置为False
+                samesite="lax",
+                max_age=max_age,
+                expires=expires_dt,
+                path="/",
+            )
 
 
 @router.post("/auth/register/send-code", response_model=SendRegisterCodeResponse)
 async def send_register_code(payload: SendRegisterCodeRequest, request: Request, db: AsyncDbSession = None):
     service = EmailVerificationService()
 
-    client_ip = request.client.host if request.client else None
+    client_ip = get_client_ip(request)
     result = await service.send_register_code(
         db=db,
         email=str(payload.email),
@@ -43,7 +69,7 @@ async def register_verify_and_create(
 ):
     service = RegistrationService()
 
-    client_ip = request.client.host if request.client else None
+    client_ip = get_client_ip(request)
     user_agent = request.headers.get("user-agent")
 
     result = await service.register_with_email_code(
@@ -56,23 +82,7 @@ async def register_verify_and_create(
     )
 
     # 成功则设置 refresh_token Cookie（复用登录逻辑）
-    if result.get("code") == 0 and result.get("data"):
-        data = result["data"]
-        refresh_token: str | None = data.pop("refresh_token", None)
-        refresh_expires_at: int | None = data.pop("refresh_expires_at", None)
-        if refresh_token and refresh_expires_at:
-            max_age = settings.REFRESH_TOKEN_EXPIRES_MINUTES * 60
-            expires_dt = datetime.fromtimestamp(refresh_expires_at, UTC)
-            response.set_cookie(
-                key="refresh_token",
-                value=refresh_token,
-                httponly=True,
-                secure=False,  # TODO: 生产环境需要设置为True，使用https，为了通过测试先设置为False
-                samesite="lax",
-                max_age=max_age,
-                expires=expires_dt,
-                path="/",
-            )
+    _set_refresh_token_cookie(response, result)
 
     return result
 
@@ -85,7 +95,7 @@ async def login(payload: LoginRequest, request: Request, response: Response, db:
             db=db,
             username=payload.username,
             password=payload.password,
-            client_ip=request.client.host if request.client else None,
+            client_ip=get_client_ip(request),
             user_agent=request.headers.get("user-agent"),
             # device_id 需前端提供或从既有 Cookie 读取，后端无法可靠自生成
             # 可后续通过自定义请求头/Cookie 传入
@@ -93,26 +103,7 @@ async def login(payload: LoginRequest, request: Request, response: Response, db:
     )
 
     # 成功则设置 refresh_token Cookie
-    if result.get("code") == 0 and result.get("data"):
-        data = result["data"]
-        refresh_token: str | None = data.pop("refresh_token", None)
-        refresh_expires_at: int | None = data.pop("refresh_expires_at", None)
-        if refresh_token and refresh_expires_at:
-            # 过期与 Max-Age（由配置与令牌一致，分钟→秒）
-            max_age = settings.REFRESH_TOKEN_EXPIRES_MINUTES * 60
-            expires_dt = datetime.fromtimestamp(refresh_expires_at, UTC)
-            response.set_cookie(
-                key="refresh_token",
-                value=refresh_token,
-                httponly=True,
-                secure=False,  # TODO: 生产环境需要设置为True，使用https，为了通过测试先设置为False
-                samesite="lax",
-                max_age=max_age,
-                expires=expires_dt,
-                path="/",
-            )
-            # access_token 通过 JSON 返回由前端放内存并带 Authorization 使用
-            # 避免将 access_token 放入 Cookie 增加 CSRF 面
+    _set_refresh_token_cookie(response, result)
 
     return result
 
@@ -125,28 +116,12 @@ async def refresh(request: Request, response: Response, db: DbSession = None):
         lambda: service.refresh(
             db=db,
             refresh_token=cookie_token,
-            client_ip=request.client.host if request.client else None,
+            client_ip=get_client_ip(request),
             user_agent=request.headers.get("user-agent"),
         )
     )
 
-    if result.get("code") == 0 and result.get("data"):
-        data = result["data"]
-        refresh_token: str | None = data.pop("refresh_token", None)
-        refresh_expires_at: int | None = data.pop("refresh_expires_at", None)
-        if refresh_token and refresh_expires_at:
-            max_age = settings.REFRESH_TOKEN_EXPIRES_MINUTES * 60
-            expires_dt = datetime.fromtimestamp(refresh_expires_at, UTC)
-            response.set_cookie(
-                key="refresh_token",
-                value=refresh_token,
-                httponly=True,
-                secure=False,  # TODO: 生产环境需要设置为True，使用https，为了通过测试先设置为False
-                samesite="lax",
-                max_age=max_age,
-                expires=expires_dt,
-                path="/",
-            )
+    _set_refresh_token_cookie(response, result)
 
     return result
 

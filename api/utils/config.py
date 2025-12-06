@@ -37,7 +37,6 @@ class Settings:
     应用配置项（来源于环境变量 .env 或系统环境）。仅保留与 `api/.env.example` 对齐的配置：
 
     基础
-    - ENABLE_DOCS: 是否启用接口文档（true/false）。默认 false
     - LOG_LEVEL: 日志级别（DEBUG/INFO/WARNING/ERROR/CRITICAL）。默认 INFO
 
     数据库（PostgreSQL）
@@ -52,12 +51,19 @@ class Settings:
     - JWT_ALGORITHM: 签名算法。固定 HS256
     - ACCESS_TOKEN_EXPIRES_MINUTES: 访问令牌有效期（分钟）。默认 60
     - REFRESH_TOKEN_EXPIRES_MINUTES: 刷新令牌有效期（分钟）。默认 1440（1 天）
+
+    文档访问（Swagger）
+    - DOCS_USERNAME: 文档 Basic Auth 用户名。默认 fastapi-nextjs
+    - DOCS_PASSWORD: 文档 Basic Auth 密码。默认 fastapi-nextjs-docs
     """
 
     def __init__(self) -> None:
         # 基础运行环境
-        self.ENABLE_DOCS: bool = os.getenv("ENABLE_DOCS", "false").lower() == "true"
         self.LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
+
+        # 文档访问（Swagger Basic Auth）
+        self.DOCS_USERNAME: str = os.getenv("DOCS_USERNAME", "fastapi-nextjs")
+        self.DOCS_PASSWORD: str = os.getenv("DOCS_PASSWORD", "fastapi-nextjs-docs")
 
         # 数据库连接配置
         self.DB_USERNAME: str = os.getenv("DB_USERNAME", "postgres")
@@ -118,7 +124,6 @@ class Settings:
         返回屏蔽敏感字段后的配置字典，仅用于调试日志输出。
         """
         return {
-            "ENABLE_DOCS": self.ENABLE_DOCS,
             "LOG_LEVEL": self.LOG_LEVEL,
             "DB_USERNAME": self.DB_USERNAME,
             "DB_PASSWORD": "***" if self.DB_PASSWORD else "",
@@ -138,6 +143,8 @@ class Settings:
             "EMAIL_VERIFICATION_SMTP_USER": "***" if self.EMAIL_VERIFICATION_SMTP_USER else "",
             "EMAIL_VERIFICATION_SMTP_PASSWORD": "***" if self.EMAIL_VERIFICATION_SMTP_PASSWORD else "",
             "EMAIL_VERIFICATION_CODE_EXPIRE_MINUTES": self.EMAIL_VERIFICATION_CODE_EXPIRE_MINUTES,
+            "DOCS_USERNAME": self.DOCS_USERNAME,
+            "DOCS_PASSWORD": "***" if self.DOCS_PASSWORD else "",
             "EMAIL_VERIFICATION_RATE_LIMIT_PER_EMAIL": self.EMAIL_VERIFICATION_RATE_LIMIT_PER_EMAIL,
             "EMAIL_VERIFICATION_RATE_LIMIT_PER_IP": self.EMAIL_VERIFICATION_RATE_LIMIT_PER_IP,
         }

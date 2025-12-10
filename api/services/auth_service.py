@@ -4,7 +4,8 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import jwt
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.jwt_tokens import (
     TokenExpiredError,
@@ -31,10 +32,10 @@ class AuthService:
             return dt.replace(tzinfo=UTC)
         return dt.astimezone(UTC)
 
-    def login(
+    async def login(
         self,
         *,
-        db: Session,
+        db: AsyncSession,
         username: str,
         password: str,
         client_ip: str | None = None,
@@ -51,7 +52,9 @@ class AuthService:
         注意：失败计数与锁定策略的窗口计算在 6.1 中扩展，这里只做基础读写与锁定检查。
         """
         try:
-            user: User | None = db.query(User).filter(User.username == username).first()
+            stmt = select(User).filter(User.username == username)
+            result = await db.execute(stmt)
+            user: User | None = result.scalars().first()
             if user is None:
                 # 匿名报错，不泄露用户名是否存在
                 return {"code": 40101, "message": "用户名或密码错误"}
@@ -72,9 +75,9 @@ class AuthService:
                     user.lock_until = None
                     try:
                         db.add(user)
-                        db.commit()
+                        await db.commit()
                     except Exception:
-                        db.rollback()
+                        await db.rollback()
                         logger.exception("reset failed attempts window failed")
 
             if not user.is_active:
@@ -105,9 +108,9 @@ class AuthService:
                             pass
 
                     db.add(user)
-                    db.commit()
+                    await db.commit()
                 except Exception:
-                    db.rollback()
+                    await db.rollback()
                     logger.exception("update failed attempts with window failed")
 
                 # 达到阈值并处于锁定期，直接返回 403
@@ -142,7 +145,7 @@ class AuthService:
             # 成功登录重置失败次数
             user.failed_login_attempts = 0
             db.add(user)
-            db.commit()
+            await db.commit()
 
             # 返回 access_token；refresh_token 由控制器写入 Cookie
             return {
@@ -155,27 +158,31 @@ class AuthService:
                 },
             }
         except Exception:
-            db.rollback()
+            await db.rollback()
             logger.exception("Login failed")
             return {"code": 50010, "message": "登录失败"}
 
     # 刷新令牌：轮换与复用检测
-    def _find_root_token(self, db: Session, token: RefreshToken) -> RefreshToken:
+    async def _find_root_token(self, db: AsyncSession, token: RefreshToken) -> RefreshToken:
         current = token
         # 追溯父链直至根（parent_jti 为 None）
         while current.parent_jti:
-            parent = db.query(RefreshToken).filter(RefreshToken.jti == current.parent_jti).first()
+            stmt = select(RefreshToken).filter(RefreshToken.jti == current.parent_jti)
+            result = await db.execute(stmt)
+            parent = result.scalars().first()
             if parent is None:
                 break
             current = parent
         return current
 
-    def _collect_family_jtis(self, db: Session, root_jti: str) -> set[str]:
+    async def _collect_family_jtis(self, db: AsyncSession, root_jti: str) -> set[str]:
         # 通过逐层查询 parent_jti 构建家族成员集合（适用于小规模数据与测试场景）
         family: set[str] = {root_jti}
         frontier: set[str] = {root_jti}
         while frontier:
-            children = db.query(RefreshToken).filter(RefreshToken.parent_jti.in_(list(frontier))).all()
+            stmt = select(RefreshToken).filter(RefreshToken.parent_jti.in_(list(frontier)))
+            result = await db.execute(stmt)
+            children = result.scalars().all()
             next_frontier: set[str] = set()
             for child in children:
                 if child.jti not in family:
@@ -184,10 +191,12 @@ class AuthService:
             frontier = next_frontier
         return family
 
-    def _revoke_family(self, db: Session, any_member: RefreshToken, reason: str) -> None:
-        root = self._find_root_token(db, any_member)
-        family_jtis = self._collect_family_jtis(db, root.jti)
-        tokens = db.query(RefreshToken).filter(RefreshToken.jti.in_(list(family_jtis))).all()
+    async def _revoke_family(self, db: AsyncSession, any_member: RefreshToken, reason: str) -> None:
+        root = await self._find_root_token(db, any_member)
+        family_jtis = await self._collect_family_jtis(db, root.jti)
+        stmt = select(RefreshToken).filter(RefreshToken.jti.in_(list(family_jtis)))
+        result = await db.execute(stmt)
+        tokens = result.scalars().all()
         now = datetime.now(UTC)
         for t in tokens:
             if not t.revoked:
@@ -197,10 +206,10 @@ class AuthService:
                 t.mark_used(now)
         db.add_all(tokens)
 
-    def refresh(
+    async def refresh(
         self,
         *,
-        db: Session,
+        db: AsyncSession,
         refresh_token: str | None,
         client_ip: str | None = None,
         user_agent: str | None = None,
@@ -227,7 +236,9 @@ class AuthService:
 
         # 查找 DB 记录
         jti = str(claims["jti"])
-        rt: RefreshToken | None = db.query(RefreshToken).filter(RefreshToken.jti == jti).first()
+        stmt = select(RefreshToken).filter(RefreshToken.jti == jti)
+        result = await db.execute(stmt)
+        rt: RefreshToken | None = result.scalars().first()
         if rt is None:
             return {"code": 40110, "message": "刷新令牌不存在"}
 
@@ -241,10 +252,10 @@ class AuthService:
         # 复用检测：同一刷新令牌再次使用
         if rt.used_at is not None:
             try:
-                self._revoke_family(db, rt, "refresh token reuse detected")
-                db.commit()
+                await self._revoke_family(db, rt, "refresh token reuse detected")
+                await db.commit()
             except Exception:
-                db.rollback()
+                await db.rollback()
                 logger.exception("revoke family on reuse failed")
             return {"code": 40112, "message": "检测到刷新令牌复用，会话已撤销"}
 
@@ -279,7 +290,7 @@ class AuthService:
 
             db.add(rt)
             db.add(new_rt)
-            db.commit()
+            await db.commit()
 
             return {
                 "code": 0,
@@ -291,14 +302,14 @@ class AuthService:
                 },
             }
         except Exception:
-            db.rollback()
+            await db.rollback()
             logger.exception("Refresh failed")
             return {"code": 50011, "message": "刷新失败"}
 
-    def logout(
+    async def logout(
         self,
         *,
-        db: Session,
+        db: AsyncSession,
         refresh_token: str | None,
     ) -> dict[str, Any]:
         """
@@ -347,15 +358,17 @@ class AuthService:
             return {"code": 0, "message": "ok"}
 
         try:
-            rt: RefreshToken | None = db.query(RefreshToken).filter(RefreshToken.jti == jti).first()
+            stmt = select(RefreshToken).filter(RefreshToken.jti == jti)
+            result = await db.execute(stmt)
+            rt: RefreshToken | None = result.scalars().first()
             if rt is None:
                 return {"code": 0, "message": "ok"}
 
-            self._revoke_family(db, rt, "logout")
-            db.commit()
+            await self._revoke_family(db, rt, "logout")
+            await db.commit()
             return {"code": 0, "message": "ok"}
         except Exception:
-            db.rollback()
+            await db.rollback()
             logger.exception("Logout revoke failed")
             # 出错也不暴露细节，返回通用失败码
             return {"code": 50012, "message": "登出失败"}

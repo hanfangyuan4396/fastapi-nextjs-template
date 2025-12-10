@@ -4,7 +4,6 @@ from datetime import UTC, datetime
 from typing import Any
 
 from fastapi import APIRouter, Request, Response
-from fastapi.concurrency import run_in_threadpool
 
 from schemas.auth import (
     LoginRequest,
@@ -17,7 +16,7 @@ from services.auth_service import AuthService
 from services.email_verification_service import EmailVerificationService
 from services.registration_service import RegistrationService
 from utils.config import settings
-from utils.db import AsyncDbSession, DbSession
+from utils.db import AsyncDbSession
 from utils.request import get_client_ip
 
 router = APIRouter()
@@ -88,18 +87,16 @@ async def register_verify_and_create(
 
 
 @router.post("/auth/login", response_model=LoginResponse)
-async def login(payload: LoginRequest, request: Request, response: Response, db: DbSession = None):
+async def login(payload: LoginRequest, request: Request, response: Response, db: AsyncDbSession = None):
     service = AuthService()
-    result = await run_in_threadpool(
-        lambda: service.login(
-            db=db,
-            username=payload.username,
-            password=payload.password,
-            client_ip=get_client_ip(request),
-            user_agent=request.headers.get("user-agent"),
-            # device_id 需前端提供或从既有 Cookie 读取，后端无法可靠自生成
-            # 可后续通过自定义请求头/Cookie 传入
-        )
+    result = await service.login(
+        db=db,
+        username=payload.username,
+        password=payload.password,
+        client_ip=get_client_ip(request),
+        user_agent=request.headers.get("user-agent"),
+        # device_id 需前端提供或从既有 Cookie 读取，后端无法可靠自生成
+        # 可后续通过自定义请求头/Cookie 传入
     )
 
     # 成功则设置 refresh_token Cookie
@@ -109,16 +106,14 @@ async def login(payload: LoginRequest, request: Request, response: Response, db:
 
 
 @router.post("/auth/refresh", response_model=LoginResponse)
-async def refresh(request: Request, response: Response, db: DbSession = None):
+async def refresh(request: Request, response: Response, db: AsyncDbSession = None):
     service = AuthService()
     cookie_token = request.cookies.get("refresh_token")
-    result = await run_in_threadpool(
-        lambda: service.refresh(
-            db=db,
-            refresh_token=cookie_token,
-            client_ip=get_client_ip(request),
-            user_agent=request.headers.get("user-agent"),
-        )
+    result = await service.refresh(
+        db=db,
+        refresh_token=cookie_token,
+        client_ip=get_client_ip(request),
+        user_agent=request.headers.get("user-agent"),
     )
 
     _set_refresh_token_cookie(response, result)
@@ -127,14 +122,12 @@ async def refresh(request: Request, response: Response, db: DbSession = None):
 
 
 @router.post("/auth/logout", response_model=LoginResponse)
-async def logout(request: Request, response: Response, db: DbSession = None):
+async def logout(request: Request, response: Response, db: AsyncDbSession = None):
     service = AuthService()
     cookie_token = request.cookies.get("refresh_token")
-    result = await run_in_threadpool(
-        lambda: service.logout(
-            db=db,
-            refresh_token=cookie_token,
-        )
+    result = await service.logout(
+        db=db,
+        refresh_token=cookie_token,
     )
 
     # 无论服务处理结果如何，都清理 Cookie（幂等）

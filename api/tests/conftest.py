@@ -5,7 +5,6 @@ from collections.abc import Generator
 import pytest
 import pytest_asyncio
 from fastapi import FastAPI
-from fastapi.testclient import TestClient
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -89,27 +88,6 @@ async def async_db_session(async_test_engine) -> AsyncSession:
     async_session_local = async_sessionmaker(bind=async_test_engine, class_=AsyncSession, expire_on_commit=False)
     async with async_session_local() as session:
         yield session
-
-
-@pytest.fixture
-def client(app: FastAPI, test_engine) -> Generator[TestClient, None, None]:
-    testing_session_local = sessionmaker(
-        bind=test_engine, autoflush=False, autocommit=False, future=True, expire_on_commit=False
-    )
-
-    def _override_get_db() -> Generator[Session, None, None]:
-        session: Session = testing_session_local()
-        try:
-            yield session
-        finally:
-            session.close()
-
-    app.dependency_overrides[get_db] = _override_get_db
-    try:
-        with TestClient(app) as c:
-            yield c
-    finally:
-        app.dependency_overrides.pop(get_db, None)
 
 
 # 提供异步 HTTP 客户端，驱动 ASGI 应用进行端到端异步调用

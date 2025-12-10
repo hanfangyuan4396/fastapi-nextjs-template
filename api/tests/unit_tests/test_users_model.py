@@ -1,15 +1,19 @@
 import pytest
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.users import User
 
 
-def test_create_user_defaults(db_session):
+@pytest.mark.asyncio
+async def test_create_user_defaults(async_db_session: AsyncSession):
     u = User(username="alice", password_hash="hashed:xxx")
-    db_session.add(u)
-    db_session.commit()
+    async_db_session.add(u)
+    await async_db_session.commit()
 
-    got = db_session.query(User).filter(User.username == "alice").one()
+    result = await async_db_session.execute(select(User).where(User.username == "alice"))
+    got = result.scalar_one()
     assert got.role == "user"
     assert got.is_active is True
     assert got.token_version == 1
@@ -17,16 +21,17 @@ def test_create_user_defaults(db_session):
     assert got.lock_until is None
 
 
-def test_username_unique(db_session):
+@pytest.mark.asyncio
+async def test_username_unique(async_db_session: AsyncSession):
     u1 = User(username="bob", password_hash="hashed:yyy")
-    db_session.add(u1)
-    db_session.commit()
+    async_db_session.add(u1)
+    await async_db_session.commit()
 
     u2 = User(username="bob", password_hash="hashed:zzz")
-    db_session.add(u2)
+    async_db_session.add(u2)
     try:
-        db_session.commit()
+        await async_db_session.commit()
         # 如果能走到这里，说明唯一约束未生效
         pytest.fail("username unique constraint not enforced")
     except IntegrityError:
-        db_session.rollback()
+        await async_db_session.rollback()

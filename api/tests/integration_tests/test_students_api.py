@@ -1,16 +1,16 @@
 import pytest
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.jwt_tokens import create_access_token
-from tests.helpers import create_user
+from tests.helpers import async_create_user
 
 API_PREFIX = "/api"
 
 
 @pytest.mark.asyncio
-async def test_create_and_list_students(async_client, db_session: Session):
+async def test_create_and_list_students(async_client, async_db_session: AsyncSession):
     # 创建管理员并生成访问令牌
-    admin = create_user(db_session, "admin_students", "123456", role="admin")
+    admin = await async_create_user(async_db_session, "admin_students", "123456", role="admin")
     access = create_access_token(admin.id, admin.role)
     headers = {"Authorization": f"Bearer {access}"}
 
@@ -30,9 +30,9 @@ async def test_create_and_list_students(async_client, db_session: Session):
 
 
 @pytest.mark.asyncio
-async def test_user_cannot_create_students_forbidden(async_client, db_session: Session):
+async def test_user_cannot_create_students_forbidden(async_client, async_db_session: AsyncSession):
     # 普通用户
-    user = create_user(db_session, "user_students", "123456", role="user")
+    user = await async_create_user(async_db_session, "user_students", "123456", role="user")
     access = create_access_token(user.id, user.role)
     headers = {"Authorization": f"Bearer {access}"}
 
@@ -42,16 +42,16 @@ async def test_user_cannot_create_students_forbidden(async_client, db_session: S
 
 
 @pytest.mark.asyncio
-async def test_user_can_list_students(async_client, db_session: Session):
+async def test_user_can_list_students(async_client, async_db_session: AsyncSession):
     # 先由管理员创建一条记录，确保列表非空
-    admin = create_user(db_session, "admin_students_2", "123456", role="admin")
+    admin = await async_create_user(async_db_session, "admin_students_2", "123456", role="admin")
     admin_access = create_access_token(admin.id, admin.role)
     admin_headers = {"Authorization": f"Bearer {admin_access}"}
     payload = {"name": "Cindy", "gender": "female", "student_id": "S3001", "age": 20}
     _ = await async_client.post(f"{API_PREFIX}/students", json=payload, headers=admin_headers)
 
     # 普通用户访问列表应 200
-    user = create_user(db_session, "user_students_2", "123456", role="user")
+    user = await async_create_user(async_db_session, "user_students_2", "123456", role="user")
     user_access = create_access_token(user.id, user.role)
     user_headers = {"Authorization": f"Bearer {user_access}"}
 

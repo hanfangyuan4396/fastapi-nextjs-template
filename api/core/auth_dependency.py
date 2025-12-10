@@ -7,7 +7,7 @@ from fastapi import Depends, Header, HTTPException, status
 
 from core.jwt_tokens import TokenError, TokenExpiredError, TokenTypeError, verify_token
 from models import User
-from utils.db import DbSession
+from utils.db import AsyncDbSession
 
 
 def _extract_bearer_token(authorization: str | None) -> str:
@@ -28,9 +28,9 @@ def _extract_bearer_token(authorization: str | None) -> str:
     return parts[1]
 
 
-def get_current_user(
+async def get_current_user(
     authorization: Annotated[str | None, Header(alias="Authorization")] = None,
-    db: DbSession = None,
+    db: AsyncDbSession = None,
 ) -> User:
     """基于访问令牌(access)的认证依赖，返回当前活跃用户。
 
@@ -74,7 +74,7 @@ def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         ) from err
 
-    user = db.get(User, user_uuid)
+    user = await db.get(User, user_uuid)
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

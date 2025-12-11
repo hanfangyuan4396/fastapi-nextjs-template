@@ -92,3 +92,18 @@
 │     └─ review.md           # 代码审查命令
 └─ README.md
 ```
+
+### GitHub Actions 变量与 Secrets 表
+
+| 名称                   | 类型      | 作用范围 / Workflow | 是否必填 | 默认值                                                     | 说明                                   |
+|------------------------|-----------|----------------------|----------|------------------------------------------------------------|----------------------------------------|
+| `ALIYUN_REGISTRY_USER` | Secret    | `build-push.yaml`   | 是       | 无                                                         | 阿里云镜像仓库登录用户名。             |
+| `ALIYUN_REGISTRY_PWD`  | Secret    | `build-push.yaml`   | 是       | 无                                                         | 阿里云镜像仓库登录密码 / Access Key。  |
+| `ALIYUN_REGISTRY`      | Variable  | `build-push.yaml`   | 否       | `registry.cn-hangzhou.aliyuncs.com`                        | 镜像仓库地址（含 region）。            |
+| `PROJ_API_IMAGE_NAME`  | Variable  | `build-push.yaml`   | 否       | `hanfangyuan/fastapi-nextjs-api`                                  | API 镜像名称（不含 registry）。        |
+| `PROJ_WEB_IMAGE_NAME`  | Variable  | `build-push.yaml`   | 否       | `hanfangyuan/fastapi-nextjs-web`                                  | Web 镜像名称（不含 registry）。        |
+| `SERVER_SSH_USER`      | Secret    | `deploy.yaml`       | 是       | 无                                                         | 目标服务器 SSH 用户名。                |
+| `SERVER_SSH_KEY`       | Secret    | `deploy.yaml`       | 是       | 无                                                         | 目标服务器 SSH 私钥。                  |
+| `SERVER_SSH_HOST`      | Variable  | `deploy.yaml`       | 推荐     | 无                                                         | 目标服务器主机名或 IP。                |
+| `SERVER_SSH_SCRIPT`    | Variable  | `deploy.yaml`       | 否       | `cd services/fastapi-nextjs-template/docker && ./fastapi-nextjs-service.sh start && docker image prune -af` | 在服务器上执行的部署脚本命令。         |
+

@@ -17,8 +17,6 @@ async def test_create_user_defaults(async_db_session: AsyncSession):
     assert got.role == "user"
     assert got.is_active is True
     assert got.token_version == 1
-    assert got.failed_login_attempts == 0
-    assert got.lock_until is None
 
 
 @pytest.mark.asyncio

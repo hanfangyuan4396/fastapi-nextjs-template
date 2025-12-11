@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-from datetime import datetime
 from uuid import uuid4
 
-from sqlalchemy import Boolean, Column, DateTime, Integer, String
+from sqlalchemy import Boolean, Column, Integer, String
 from sqlalchemy.dialects.postgresql import UUID
 
 from .base import Base
@@ -32,10 +31,6 @@ class User(Base):
 
     # 令牌版本与风控字段
     token_version = Column(Integer, nullable=False, default=1, server_default="1", comment="令牌版本")
-    failed_login_attempts = Column(
-        Integer, nullable=False, default=0, server_default="0", comment="30分钟内连续失败次数"
-    )
-    lock_until = Column(DateTime, nullable=True, comment="账号锁定到期时间")
 
     def __repr__(self) -> str:  # pragma: no cover - 调试友好
         return f"<User(id={self.id}, username='{self.username}', role='{self.role}')>"
@@ -48,6 +43,4 @@ class User(Base):
             "role": self.role,
             "is_active": self.is_active,
             "token_version": self.token_version,
-            "failed_login_attempts": self.failed_login_attempts,
-            "lock_until": self.lock_until.isoformat() if isinstance(self.lock_until, datetime) else None,
         }

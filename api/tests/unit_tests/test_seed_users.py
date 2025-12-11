@@ -1,5 +1,3 @@
-from datetime import UTC, datetime, timedelta
-
 import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -29,8 +27,6 @@ async def _async_upsert_user(
             role=role,
             is_active=True,
             token_version=1,
-            failed_login_attempts=0,
-            lock_until=None,
         )
         async_db_session.add(user)
         return user, "created"
@@ -49,11 +45,6 @@ async def _async_upsert_user(
 
     if not user.is_active:
         user.is_active = True
-        need_update = True
-
-    if user.failed_login_attempts != 0 or user.lock_until is not None:
-        user.failed_login_attempts = 0
-        user.lock_until = None
         need_update = True
 
     return user, ("updated" if need_update else "skipped")
@@ -101,29 +92,6 @@ async def test_seed_idempotent_skips_when_no_change(async_db_session: AsyncSessi
     after = result_after.scalar_one()
     assert action == "skipped"
     assert after.password_hash == hash_before
-
-
-@pytest.mark.asyncio
-async def test_seed_resets_lock_and_failures(async_db_session: AsyncSession):
-    """
-    Verifies that upsert_user clears failed login attempts and lock state when updating.
-    """
-    user, _ = await _async_upsert_user(async_db_session, "user", "123456", "user")
-    await async_db_session.commit()
-
-    # 模拟锁定与失败计数
-    user.failed_login_attempts = 5
-    user.lock_until = datetime.now(UTC) + timedelta(hours=1)
-    await async_db_session.commit()
-
-    _, action = await _async_upsert_user(async_db_session, "user", "123456", "user")
-    await async_db_session.commit()
-
-    result = await async_db_session.execute(select(User).where(User.username == "user"))
-    got = result.scalar_one()
-    assert action == "updated"
-    assert got.failed_login_attempts == 0
-    assert got.lock_until is None
 
 
 @pytest.mark.asyncio

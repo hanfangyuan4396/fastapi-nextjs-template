@@ -77,21 +77,43 @@ async def async_create_expired_refresh_token(db: AsyncSession, user: User) -> tu
 class FakeRedis:
     """
     简单的内存版 Redis 实现，用于测试：
-    - 支持 incr/expire/hset/hgetall/delete
-    - 忽略 TTL，仅用于逻辑校验
+    - 支持 incr/expire/hset/hgetall/delete/get/set/setex/exists/ttl
+    - 忽略 TTL，仅用于逻辑校验（除非明确设置 _ttl 字典）
     """
 
     def __init__(self) -> None:
         self._store: dict[str, object] = {}
+        self._ttl: dict[str, int] = {}  # key -> ttl seconds（仅用于测试验证）
 
     async def incr(self, key: str) -> int:
         value = int(self._store.get(key, 0)) + 1
         self._store[key] = value
         return value
 
-    async def expire(self, key: str, _seconds: int) -> None:
-        # 为简化测试逻辑，这里不实现真正的过期行为
-        return None
+    async def expire(self, key: str, seconds: int) -> None:
+        # 记录 TTL 供测试验证
+        self._ttl[key] = seconds
+
+    async def get(self, key: str) -> str | None:
+        value = self._store.get(key)
+        if value is None:
+            return None
+        return str(value)
+
+    async def set(self, key: str, value: str) -> None:
+        self._store[key] = value
+
+    async def setex(self, key: str, seconds: int, value: str) -> None:
+        self._store[key] = value
+        self._ttl[key] = seconds
+
+    async def exists(self, key: str) -> int:
+        return 1 if key in self._store else 0
+
+    async def ttl(self, key: str) -> int:
+        if key not in self._store:
+            return -2  # key 不存在
+        return self._ttl.get(key, -1)  # -1 表示无过期
 
     async def hset(self, key: str, mapping: dict[str, str]) -> None:
         # 更新部分字段，保留其他字段（符合真实 Redis 行为）
@@ -107,5 +129,7 @@ class FakeRedis:
             return dict(value)
         return {}
 
-    async def delete(self, key: str) -> None:
-        self._store.pop(key, None)
+    async def delete(self, *keys: str) -> None:
+        for key in keys:
+            self._store.pop(key, None)
+            self._ttl.pop(key, None)

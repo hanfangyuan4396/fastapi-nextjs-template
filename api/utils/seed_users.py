@@ -26,13 +26,12 @@ def ensure_tables() -> None:
 
 def upsert_user(session: Session, username: str, plain_password: str, role: str) -> tuple[User, str]:
     """
-    Insert a new user or update an existing user's credentials, role, and security state.
+    Insert a new user or update an existing user's credentials and role.
 
     If a user with the given username does not exist, a new User is created with the
-    provided password (hashed), role, and default security fields. If the user exists,
-    the function updates the role if different, replaces the stored password when the
-    provided password does not match the existing hash, reactivates the account if
-    inactive, and resets failed login and lock fields if present. The function does
+    provided password (hashed) and role. If the user exists, the function updates the
+    role if different, replaces the stored password when the provided password does not
+    match the existing hash, and reactivates the account if inactive. The function does
     not commit the session; the caller is responsible for committing.
 
     Parameters:
@@ -53,8 +52,6 @@ def upsert_user(session: Session, username: str, plain_password: str, role: str)
             role=role,
             is_active=True,
             token_version=1,
-            failed_login_attempts=0,
-            lock_until=None,
         )
         session.add(user)
         return user, "created"
@@ -71,13 +68,9 @@ def upsert_user(session: Session, username: str, plain_password: str, role: str)
         user.password_hash = hash_password(plain_password)
         need_update = True
 
-    # 状态与风控字段重置
+    # 状态重置
     if not user.is_active:
         user.is_active = True
-        need_update = True
-    if user.failed_login_attempts != 0 or user.lock_until is not None:
-        user.failed_login_attempts = 0
-        user.lock_until = None
         need_update = True
 
     return user, ("updated" if need_update else "skipped")

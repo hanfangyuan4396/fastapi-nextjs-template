@@ -111,7 +111,7 @@ async function requestWithAutoRefresh<T>(
       if (typeof window !== "undefined") {
         const loginUrl = "/login";
         try {
-          window.location.replace(loginUrl);
+          window.location.assign(loginUrl); // 使用 assign 以便历史可回退
         } catch {
           window.location.href = loginUrl;
         }

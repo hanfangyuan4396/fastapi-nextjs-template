@@ -4,8 +4,14 @@ export enum Role {
 }
 export type UserRole = Role | null;
 
+const STORAGE_ACCESS_TOKEN_KEY = "access_token";
+
 let currentAccessToken: AccessToken = null;
 let currentUserRole: UserRole = null;
+
+function isBrowser(): boolean {
+  return typeof window !== "undefined" && typeof window.localStorage !== "undefined";
+}
 
 function base64UrlDecode(input: string): string {
   try {
@@ -50,9 +56,27 @@ function extractRoleFromJwt(token: string): Role | null {
 export function setAccessToken(token: string): void {
   currentAccessToken = token;
   currentUserRole = extractRoleFromJwt(token);
+  if (isBrowser()) {
+    try {
+      window.localStorage.setItem(STORAGE_ACCESS_TOKEN_KEY, token);
+    } catch {
+      // 忽略存储失败
+    }
+  }
 }
 
 export function getAccessToken(): AccessToken {
+  if (!currentAccessToken && isBrowser()) {
+    try {
+      const stored = window.localStorage.getItem(STORAGE_ACCESS_TOKEN_KEY);
+      if (stored) {
+        currentAccessToken = stored;
+        currentUserRole = extractRoleFromJwt(stored);
+      }
+    } catch {
+      // 忽略读取失败
+    }
+  }
   return currentAccessToken;
 }
 
@@ -67,4 +91,11 @@ export function isAdmin(): boolean {
 export function clearAccessToken(): void {
   currentAccessToken = null;
   currentUserRole = null;
+  if (isBrowser()) {
+    try {
+      window.localStorage.removeItem(STORAGE_ACCESS_TOKEN_KEY);
+    } catch {
+      // 忽略清理失败
+    }
+  }
 }

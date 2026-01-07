@@ -2,17 +2,17 @@ services:
   api:
     image: registry.cn-hangzhou.aliyuncs.com/hanfangyuan/fastapi-nextjs-api:main
     pull_policy: always
+    env_file:
+      - ./.env
     environment:
       - HOST=0.0.0.0
       - PORT=8000
       - WORKERS=1
       - MIGRATION_ENABLED=true
-    volumes:
-      - ./volumes/api/.env:/api/.env
     depends_on:
       - postgres
       - redis
-    restart:  unless-stopped
+    restart: unless-stopped
   web:
     image: registry.cn-hangzhou.aliyuncs.com/hanfangyuan/fastapi-nextjs-web:main
     pull_policy: always
@@ -29,7 +29,7 @@ services:
     ports:
       - "35432:5432"
     environment:
-      POSTGRES_PASSWORD: fastapi_nextjs
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-fastapi_nextjs}
       TZ: Asia/Shanghai
     command:
       - postgres
@@ -49,7 +49,7 @@ services:
     command:
       - redis-server
       - --requirepass
-      - fastapi_nextjs
+      - ${REDIS_PASSWORD:-fastapi_nextjs}
       - --save
       - "60"
       - "1"

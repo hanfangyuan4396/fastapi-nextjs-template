@@ -5,12 +5,16 @@ from typing import Any
 
 from dotenv import load_dotenv
 
+# 模块级 logger（具体输出行为取决于外部 logging 配置）
+logger = logging.getLogger(__name__)
+
 
 def _load_env_file() -> None:
     """在模块导入时加载 .env（不覆盖系统环境变量）。"""
     env_path = Path(__file__).with_name("..").resolve().joinpath(".env")
     if not env_path.exists():
         env_path = Path(__file__).with_name("..").resolve().joinpath(".env.example")
+        logger.warning("env file not found, using default example file: %s", env_path)
     load_dotenv(dotenv_path=env_path, override=False)
 
 
@@ -21,9 +25,6 @@ _load_env_file()
 from utils.logging import init_logging  # noqa: E402
 
 init_logging(os.getenv("LOG_LEVEL"))
-
-# 模块级 logger（具体输出行为取决于外部 logging 配置）
-logger = logging.getLogger(__name__)
 
 
 class ConfigValidationError(Exception):

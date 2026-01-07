@@ -1,0 +1,94 @@
+name: Web Tests
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'web/**'
+      - '.github/workflows/web-tests.yaml'
+  push:
+    branches: [ main ]
+    paths:
+      - 'web/**'
+      - '.github/workflows/web-tests.yaml'
+  merge_group:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Run Vitest (Web)
+    runs-on: ubuntu-latest
+    env:
+      NODE_ENV: test
+      NEXT_PUBLIC_API_BASE_URL: http://localhost/api
+    defaults:
+      run:
+        shell: bash
+        working-directory: web
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests with coverage
+        run: |
+          set -euo pipefail
+          npm run test -- --coverage --coverage.reporter=text --coverage.reporter=json-summary
+
+      - name: Coverage Summary
+        if: always()
+        run: |
+          set -euo pipefail
+          node - <<'NODE'
+          const fs = require("node:fs");
+          const path = require("node:path");
+
+          const summaryPath = path.join(process.cwd(), "coverage", "coverage-summary.json");
+          const out = process.env.GITHUB_STEP_SUMMARY;
+
+          if (!out) {
+            console.log("GITHUB_STEP_SUMMARY is not set, skip.");
+            process.exit(0);
+          }
+
+          if (!fs.existsSync(summaryPath)) {
+            fs.appendFileSync(out, `## 测试覆盖率（Vitest）\n\n未找到 coverage 汇总文件：\`${summaryPath}\`\n`);
+            process.exit(0);
+          }
+
+          const json = JSON.parse(fs.readFileSync(summaryPath, "utf-8"));
+          const total = json.total || {};
+          const rows = [
+            ["Statements", total.statements],
+            ["Branches", total.branches],
+            ["Functions", total.functions],
+            ["Lines", total.lines],
+          ].map(([name, v]) => {
+            const pct = v?.pct ?? 0;
+            const covered = v?.covered ?? 0;
+            const totalN = v?.total ?? 0;
+            return `| ${name} | ${pct}% | ${covered}/${totalN} |`;
+          });
+
+          const md = [
+            "## 测试覆盖率（Vitest）",
+            "",
+            "| Metric | % | Covered/Total |",
+            "| --- | ---: | ---: |",
+            ...rows,
+            "",
+          ].join("\n");
+
+          fs.appendFileSync(out, md);
+          NODE

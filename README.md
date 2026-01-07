@@ -12,7 +12,7 @@
 - **前端（web）**: Next.js 16, React 19, TypeScript 5, Tailwind CSS 4, next-intl, react-hook-form, shadcn/ui
 - **数据库**: PostgreSQL
 - **容器/编排**: Docker, Docker Compose（含 Nginx 反向代理）
-- **质量与工具**: Pytest, Ruff, ESLint, GitHub Actions
+- **质量与工具**: Pytest, Ruff, ESLint, Vitest, Testing Library, MSW, happy-dom, GitHub Actions
 - **认证与鉴权**: 基于 JWT 的认证与依赖注入式鉴权（含角色控制）
 
 ### 目录结构
@@ -58,6 +58,7 @@
 │  │  ├─ i18n/               # 国际化配置（next-intl）
 │  │  ├─ lib/                # 前端通用工具
 │  │  └─ proxy.ts
+│  ├─ tests/                 # 前端测试（Vitest + Testing Library）
 │  ├─ public/
 │  ├─ Dockerfile
 │  ├─ package.json
@@ -93,6 +94,11 @@
 └─ README.md
 ```
 
+### 测试
+
+- 后端：在 `api/` 目录执行 `pytest`
+- 前端：在 `web/` 目录执行 `npm run test`（覆盖率：`npm run test:coverage`）
+
 ### GitHub Actions 变量与 Secrets 表
 
 | 名称                   | 类型      | 作用范围 / Workflow | 是否必填 | 默认值                                                     | 说明                                   |
@@ -106,4 +112,3 @@
 | `SERVER_SSH_KEY`       | Secret    | `deploy.yaml`       | 是       | 无                                                         | 目标服务器 SSH 私钥。                  |
 | `SERVER_SSH_HOST`      | Variable  | `deploy.yaml`       | 推荐     | 无                                                         | 目标服务器主机名或 IP。                |
 | `SERVER_SSH_SCRIPT`    | Variable  | `deploy.yaml`       | 否       | `cd services/fastapi-nextjs-template/docker && ./fastapi-nextjs-service.sh start && docker image prune -af` | 在服务器上执行的部署脚本命令。         |
-

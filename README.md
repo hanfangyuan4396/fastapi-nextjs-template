@@ -112,3 +112,14 @@
 | `SERVER_SSH_KEY`       | Secret    | `deploy.yaml`       | 是       | 无                                                         | 目标服务器 SSH 私钥。                  |
 | `SERVER_SSH_HOST`      | Variable  | `deploy.yaml`       | 推荐     | 无                                                         | 目标服务器主机名或 IP。                |
 | `SERVER_SSH_SCRIPT`    | Variable  | `deploy.yaml`       | 否       | `cd services/fastapi-nextjs-template/docker && ./fastapi-nextjs-service.sh start && docker image prune -af` | 在服务器上执行的部署脚本命令。         |
+
+### Deploy（`deploy.yaml`）SSH 前置准备（避免握手失败）
+
+`deploy.yaml` 使用 `appleboy/ssh-action` 通过 **SSH 私钥** 登录服务器执行部署脚本。为避免 SSH 握手失败，请确保在服务器上将对应的 **公钥** 添加到目标用户的 `~/.ssh/authorized_keys`。
+
+```bash
+mkdir -p ~/.ssh
+cat >> ~/.ssh/authorized_keys << 'EOF'
+# 粘贴公钥内容（通常是 *.pub 文件里的那一行）
+EOF
+```

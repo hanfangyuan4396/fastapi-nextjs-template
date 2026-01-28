@@ -46,6 +46,7 @@ Docker：
 - python环境路径为 /home/hfy/miniconda3/envs/xxx/bin/python，使用此环境执行python测试、数据库迁移等操作
 - 执行测试时需要在api目录下执行pytest命令
 - 使用命令创建alembic迁移脚本，不要直接生成：alembic revision --autogenerate -m "简要描述此次变更内容"，并且要cd api/migrations目录下执行命令
+- 对于后端代码，要执行ruff和pytest命令，确保代码质量
 - 对于前端代码，要执行lint、test、build命令，确保代码质量
 
 ## 拆分与验证流程（前端）

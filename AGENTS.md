@@ -3,7 +3,7 @@
 ## 项目结构与模块组织
 - `api/` 为 FastAPI 后端，`controllers/` 存放路由控制器，`services/` 处理业务逻辑，`models/` 为 SQLAlchemy 模型，`schemas/` 为 Pydantic 模型，`tests/` 为 pytest 测试。迁移文件在 `api/migrations/`。
 - `web/` 为 Next.js 应用，App Router 在 `web/src/app/`，共享工具在 `web/src/lib/`，API 封装在 `web/src/service/`。
-- `docker/` 包含 `docker-compose.yaml`、服务脚本与挂载配置，例如 `docker/volumes/api/.env`。
+- `docker/` 包含 `docker-compose.yaml`、服务脚本与挂载配置，例如 `.env` 与 `api/.env.example`。
 - `spec/` 存放前端与编码规范相关的说明文档。
 
 ## 构建、测试与开发命令
@@ -37,7 +37,7 @@ Docker：
 - PR 需要清晰描述，相关问题请关联链接；涉及 UI 变更请附截图；如有迁移或环境改动请注明。
 
 ## 配置与安全建议
-- 后端配置通过环境变量加载，示例见 `docker/volumes/api/.env`。
+- 后端配置通过环境变量加载，示例见 `api/.env.example`。
 - 避免提交密钥，使用本地 `.env` 或 CI secrets。
 
 ## 重要，必须遵守的规则

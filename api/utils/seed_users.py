@@ -6,33 +6,25 @@ import os
 
 from sqlalchemy.orm import Session
 
-from core.security import hash_password, verify_password
-from models.base import Base
+from core.security import hash_password
 from models.users import User
-from utils.db import SessionLocal, engine
+from utils.db import SessionLocal
 from utils.logging import get_logger, init_logging
 
 
-def ensure_tables() -> None:
+def create_user_if_missing(
+    session: Session,
+    username: str,
+    plain_password: str,
+    role: str,
+) -> tuple[User, str]:
     """
-    Create all ORM-mapped database tables defined on `Base`.
-
-    Ensures the database schema for the application's models exists by invoking
-    create_all on the module-configured engine; intended for convenient use in
-    development and testing.
-    """
-    Base.metadata.create_all(bind=engine)
-
-
-def upsert_user(session: Session, username: str, plain_password: str, role: str) -> tuple[User, str]:
-    """
-    Insert a new user or update an existing user's credentials and role.
+    Insert a new user if missing; do not update existing accounts.
 
     If a user with the given username does not exist, a new User is created with the
-    provided password (hashed) and role. If the user exists, the function updates the
-    role if different, replaces the stored password when the provided password does not
-    match the existing hash, and reactivates the account if inactive. The function does
-    not commit the session; the caller is responsible for committing.
+    provided password (hashed) and role. If the user exists, the function does not
+    modify the user. The function does not commit the session; the caller is responsible
+    for committing.
 
     Parameters:
         username (str): The username to create or update.
@@ -41,8 +33,7 @@ def upsert_user(session: Session, username: str, plain_password: str, role: str)
 
     Returns:
         tuple[User, str]: A tuple containing the User instance and an action string:
-            `'created'` if a new user was added, `'updated'` if an existing user was
-            modified, or `'skipped'` if no changes were necessary.
+            `'created'` if a new user was added, or `'skipped'` if no changes were necessary.
     """
     user = session.query(User).filter_by(username=username).one_or_none()
     if user is None:
@@ -56,68 +47,64 @@ def upsert_user(session: Session, username: str, plain_password: str, role: str)
         session.add(user)
         return user, "created"
 
-    need_update = False
+    return user, "skipped"
 
-    # 角色
-    if user.role != role:
-        user.role = role
-        need_update = True
 
-    # 密码（若不匹配，则重置为指定默认密码）
-    if not verify_password(plain_password, user.password_hash):
-        user.password_hash = hash_password(plain_password)
-        need_update = True
+def create_admin_if_missing(
+    session: Session,
+    *,
+    username: str,
+    plain_password: str,
+) -> str:
+    """Create admin user if missing; do not update existing accounts."""
+    existing = session.query(User).filter_by(username=username).one_or_none()
+    if existing is not None:
+        return "skipped"
 
-    # 状态重置
-    if not user.is_active:
-        user.is_active = True
-        need_update = True
+    user = User(
+        username=username,
+        password_hash=hash_password(plain_password),
+        role="admin",
+        is_active=True,
+        token_version=1,
+    )
+    session.add(user)
+    return "created"
 
-    return user, ("updated" if need_update else "skipped")
+
+def _get_required_env(key: str) -> str:
+    value = os.getenv(key)
+    if not value:
+        raise ValueError(f"missing required environment variable: {key}")
+    return value
+
+
+def _run_init_admin(session: Session, logger) -> None:
+    username = _get_required_env("DEFAULT_ADMIN_USERNAME")
+    password = _get_required_env("DEFAULT_ADMIN_PASSWORD")
+
+    try:
+        action = create_admin_if_missing(session, username=username, plain_password=password)
+        session.commit()
+        logger.info("init admin result=%s username=%s", action, username)
+    except Exception:  # pragma: no cover - 脚本运行时错误记录
+        session.rollback()
+        logger.exception("init admin failed")
+        raise
+    finally:
+        session.close()
 
 
 def main() -> None:
     # 初始化日志
     """
-    Seed the development/test database with default user accounts and ensure required tables exist.
-
-    Initializes logging from the LOG_LEVEL environment variable, creates any missing ORM tables,
-    opens a database session, and inserts or updates a set of default user accounts (currently
-    "admin" and "user" with the default password "123456" and respective roles). Commits the
-    transaction when all seeds succeed; on error, rolls back the session, logs the exception,
-    re-raises it, and always closes the session.
+    Initialize default admin from environment variables.
     """
     init_logging(os.getenv("LOG_LEVEL"))
     logger = get_logger()
 
-    logger.warning("运行开发/测试种子脚本，仅用于 dev/test 环境。目标数据库：%s", str(engine.url))
-
-    ensure_tables()
-
     session: Session = SessionLocal()
-    # TODO: 支持从环境变量中读取用户名和密码，放到boot.sh中执行
-    try:
-        targets = [
-            ("admin", "123456", "admin"),
-            ("user", "123456", "user"),
-        ]
-
-        results: list[tuple[str, str, str]] = []
-        for username, password, role in targets:
-            user, action = upsert_user(session, username, password, role)
-            results.append((username, action, user.role))
-
-        session.commit()
-
-        for username, action, role in results:
-            logger.info("user=%s action=%s role=%s", username, action, role)
-
-    except Exception:  # pragma: no cover - 脚本运行时错误记录
-        session.rollback()
-        logger.exception("seed users failed")
-        raise
-    finally:
-        session.close()
+    _run_init_admin(session, logger)
 
 
 if __name__ == "__main__":

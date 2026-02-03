@@ -9,6 +9,7 @@ services:
       - PORT=8000
       - WORKERS=1
       - MIGRATION_ENABLED=true
+      - INIT_ADMIN_ENABLED=true
     depends_on:
       - postgres
       - redis

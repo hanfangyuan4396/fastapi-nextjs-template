@@ -5,9 +5,11 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { useTranslations } from "next-intl";
+import { EyeIcon, EyeOffIcon } from "lucide-react";
 
 import { login, type LoginPayload } from "@/service/auth";
 import { setAccessToken } from "@/lib/auth";
+import { ResetPasswordDialog } from "./components/reset-password-dialog";
 
 export default function LoginPage() {
    const router = useRouter();
@@ -20,6 +22,8 @@ export default function LoginPage() {
    } = useForm<LoginPayload>({ defaultValues: { username: "", password: "" } });
 
    const [errorMsg, setErrorMsg] = useState<string>("");
+   const [showPassword, setShowPassword] = useState(false);
+   const [resetOpen, setResetOpen] = useState(false);
 
    const onSubmit = handleSubmit(async (values) => {
      setErrorMsg("");
@@ -65,14 +69,27 @@ export default function LoginPage() {
            <label htmlFor="password" className="block text-sm font-medium">
              {t("auth.login.password")}
            </label>
-           <input
-             id="password"
-             type="password"
-             className="w-full rounded-md border px-3 py-2 outline-none"
-             {...register("password", {
-               required: t("auth.login.errors.passwordRequired"),
-             })}
-           />
+           <div className="relative">
+             <input
+               id="password"
+               type={showPassword ? "text" : "password"}
+               className="w-full rounded-md border px-3 py-2 pr-12 outline-none"
+               {...register("password", {
+                 required: t("auth.login.errors.passwordRequired"),
+               })}
+             />
+             <button
+               type="button"
+               className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground hover:text-foreground"
+               onClick={() => setShowPassword((prev) => !prev)}
+             >
+               {showPassword ? (
+                 <EyeOffIcon className="h-4 w-4" />
+               ) : (
+                 <EyeIcon className="h-4 w-4" />
+               )}
+             </button>
+           </div>
            {errors.password?.message ? (
              <p className="text-xs text-red-500">{errors.password.message}</p>
            ) : null}
@@ -91,12 +108,20 @@ export default function LoginPage() {
          </button>
        </form>
 
-       <p className="mt-4 text-center text-sm text-gray-600">
-         {t("auth.login.noAccount")}{" "}
+       <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
+         <button
+           type="button"
+           className="text-blue-600 hover:underline"
+           onClick={() => setResetOpen(true)}
+         >
+           {t("auth.login.forgotPassword")}
+         </button>
          <Link href="/register" className="text-blue-600 hover:underline">
            {t("auth.login.goRegister")}
          </Link>
-       </p>
+       </div>
+
+       <ResetPasswordDialog open={resetOpen} onClose={() => setResetOpen(false)} />
      </div>
    );
  }

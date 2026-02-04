@@ -159,6 +159,44 @@ async def test_send_register_code_rate_limit_per_ip(
 
 
 @pytest.mark.asyncio
+async def test_send_reset_password_code_success(async_db_session, fake_redis: FakeRedis, noop_email_sender):
+    from models import User
+
+    user = User(username="reset@example.com", password_hash="x", role="user", is_active=True)
+    async_db_session.add(user)
+    await async_db_session.commit()
+
+    service = EmailVerificationService()
+    resp = await service.send_reset_password_code(
+        db=async_db_session,
+        email="reset@example.com",
+        client_ip=None,
+    )
+
+    assert resp["code"] == 0
+
+    code_key = (
+        f"{EmailVerificationService.KEY_PREFIX_CODE}:{EmailVerificationService.SCENE_RESET_PASSWORD}:reset@example.com"
+    )
+    stored = await fake_redis.hgetall(code_key)
+    assert stored.get("scene") == EmailVerificationService.SCENE_RESET_PASSWORD
+    assert len(noop_email_sender) == 1
+
+
+@pytest.mark.asyncio
+async def test_send_reset_password_code_email_not_found(async_db_session, fake_redis: FakeRedis, noop_email_sender):
+    service = EmailVerificationService()
+    resp = await service.send_reset_password_code(
+        db=async_db_session,
+        email="missing@example.com",
+        client_ip=None,
+    )
+
+    assert resp["code"] == 40401
+    assert noop_email_sender == []
+
+
+@pytest.mark.asyncio
 async def test_verify_and_consume_code_success(async_db_session, fake_redis: FakeRedis, noop_email_sender):
     service = EmailVerificationService()
     email = "verify@example.com"

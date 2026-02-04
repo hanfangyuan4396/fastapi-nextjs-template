@@ -5,15 +5,21 @@ from typing import Any
 
 from fastapi import APIRouter, Request, Response
 
+from core.auth_dependency import CurrentUser
 from schemas.auth import (
+    BasicResponse,
+    ChangePasswordRequest,
     LoginRequest,
     LoginResponse,
     RegisterVerifyAndCreateRequest,
+    ResetPasswordRequest,
     SendRegisterCodeRequest,
     SendRegisterCodeResponse,
+    SendResetCodeRequest,
 )
 from services.auth_service import AuthService
 from services.email_verification_service import EmailVerificationService
+from services.password_service import PasswordService
 from services.registration_service import RegistrationService
 from utils.config import settings
 from utils.db import AsyncDbSession
@@ -143,4 +149,51 @@ async def logout(request: Request, response: Response, db: AsyncDbSession = None
             path="/",
         )
 
+    return result
+
+
+@router.get("/auth/me", response_model=BasicResponse)
+async def get_me(current_user: CurrentUser):
+    return {"code": 0, "message": "ok", "data": current_user.to_safe_dict()}
+
+
+@router.post("/auth/password/change", response_model=BasicResponse)
+async def change_password(
+    payload: ChangePasswordRequest,
+    current_user: CurrentUser,
+    db: AsyncDbSession = None,
+):
+    service = PasswordService()
+    result = await service.change_password(
+        db=db,
+        user=current_user,
+        old_password=payload.old_password,
+        new_password=payload.new_password,
+        confirm_password=payload.confirm_password,
+    )
+    return result
+
+
+@router.post("/auth/password/reset/send-code", response_model=SendRegisterCodeResponse)
+async def send_reset_code(payload: SendResetCodeRequest, request: Request, db: AsyncDbSession = None):
+    service = EmailVerificationService()
+    client_ip = get_client_ip(request)
+    result = await service.send_reset_password_code(
+        db=db,
+        email=str(payload.email),
+        client_ip=client_ip,
+    )
+    return result
+
+
+@router.post("/auth/password/reset/confirm", response_model=BasicResponse)
+async def reset_password(payload: ResetPasswordRequest, db: AsyncDbSession = None):
+    service = PasswordService()
+    result = await service.reset_password(
+        db=db,
+        email=str(payload.email),
+        code=payload.code,
+        new_password=payload.new_password,
+        confirm_password=payload.confirm_password,
+    )
     return result

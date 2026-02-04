@@ -35,6 +35,7 @@ class EmailVerificationService:
 
     # 业务场景常量，预留未来扩展（如 reset_password）
     SCENE_REGISTER = "register"
+    SCENE_RESET_PASSWORD = "reset_password"
 
     # 频控时间窗口（秒）
     RATE_LIMIT_WINDOW_SECONDS = 60
@@ -181,14 +182,103 @@ class EmailVerificationService:
 
         return {"code": 0, "message": "ok", "data": {"expires_in": ttl_seconds}}
 
+    async def send_reset_password_code(
+        self,
+        *,
+        db: AsyncSession,
+        email: str,
+        client_ip: str | None = None,
+    ) -> dict[str, Any]:
+        try:
+            valid_email = TypeAdapter(EmailStr).validate_python(email)
+        except ValidationError:
+            return {"code": 42201, "message": "邮箱格式不合法"}
+
+        try:
+            stmt = select(User).where(User.username == str(valid_email))
+            result = await db.execute(stmt)
+            existing: User | None = result.scalars().first()
+            if existing is None or not existing.is_active:
+                return {"code": 40401, "message": "邮箱不存在"}
+        except Exception:
+            logger.exception("check existing user for reset password failed")
+            return {"code": 50020, "message": "检查邮箱状态失败"}
+
+        r = get_redis()
+
+        email_key = self._build_rate_email_key(str(valid_email))
+        try:
+            email_count = await r.incr(email_key)
+            if email_count == 1:
+                await r.expire(email_key, self.RATE_LIMIT_WINDOW_SECONDS)
+            if email_count > settings.EMAIL_VERIFICATION_RATE_LIMIT_PER_EMAIL:
+                return {"code": 42901, "message": "验证码发送过于频繁，请稍后再试"}
+        except Exception:
+            logger.exception("email-based rate limit failed")
+            return {"code": 50021, "message": "发送验证码失败"}
+
+        if client_ip:
+            ip_key = self._build_rate_ip_key(client_ip)
+            try:
+                ip_count = await r.incr(ip_key)
+                if ip_count == 1:
+                    await r.expire(ip_key, self.RATE_LIMIT_WINDOW_SECONDS)
+                if ip_count > settings.EMAIL_VERIFICATION_RATE_LIMIT_PER_IP:
+                    return {"code": 42902, "message": "当前 IP 请求过于频繁，请稍后再试"}
+            except Exception:
+                logger.exception("ip-based rate limit failed")
+                return {"code": 50021, "message": "发送验证码失败"}
+
+        code = self._generate_numeric_code(6)
+        code_hash = hash_password(code)
+
+        ttl_seconds = settings.EMAIL_VERIFICATION_CODE_EXPIRE_MINUTES * 60
+        now = datetime.now(UTC)
+
+        code_key = self._build_code_key(scene=self.SCENE_RESET_PASSWORD, email=str(valid_email))
+
+        try:
+            await r.hset(
+                code_key,
+                mapping={
+                    "code_hash": code_hash,
+                    "scene": self.SCENE_RESET_PASSWORD,
+                    "created_at": now.isoformat(),
+                    "used": "0",
+                    "failed_attempts": "0",
+                    "ip": client_ip or "",
+                },
+            )
+            await r.expire(code_key, ttl_seconds)
+        except Exception:
+            logger.exception("store verification code in redis failed")
+            return {"code": 50021, "message": "发送验证码失败"}
+
+        try:
+            await asyncio.to_thread(
+                send_verification_email,
+                str(valid_email),
+                code,
+                settings.EMAIL_VERIFICATION_CODE_EXPIRE_MINUTES,
+            )
+        except EmailNotConfiguredError as err:
+            logger.exception("email verification config not set correctly")
+            return {"code": 50022, "message": str(err)}
+        except Exception:
+            logger.exception("send verification email failed")
+            return {"code": 50021, "message": "发送验证码失败"}
+
+        return {"code": 0, "message": "ok", "data": {"expires_in": ttl_seconds}}
+
     async def verify_and_consume_code(
         self,
         *,
         email: str,
         code: str,
+        scene: str = SCENE_REGISTER,
     ) -> dict[str, Any]:
         """
-        校验并消费注册场景的验证码（不创建用户，只负责验证码本身的合法性验证）。
+        校验并消费验证码（不创建用户，只负责验证码本身的合法性验证）。
 
         - 验证码不存在 / 已过期：返回错误
         - 已标记为 used：返回错误
@@ -205,7 +295,7 @@ class EmailVerificationService:
             return {"code": 42202, "message": "验证码格式不合法"}
 
         r = get_redis()
-        code_key = self._build_code_key(scene=self.SCENE_REGISTER, email=str(valid_email))
+        code_key = self._build_code_key(scene=scene, email=str(valid_email))
 
         try:
             data = await r.hgetall(code_key)

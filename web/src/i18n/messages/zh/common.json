@@ -4,7 +4,10 @@
     "students": "学生",
     "studentsManagement": "学生管理",
     "siteName": "fastapi-nextjs-template",
-    "logout": "退出"
+    "logout": "退出",
+    "account": "账号",
+    "changePassword": "修改密码",
+    "userUnknown": "未知用户"
   },
   "footer": {
     "copyright": "© {year} fastapi-nextjs-template",
@@ -14,6 +17,7 @@
     "loading": "加载中...",
     "noData": "暂无数据",
     "refresh": "刷新",
+    "cancel": "取消",
     "toast": {
       "createSuccess": "新增成功",
       "createFail": "新增失败",

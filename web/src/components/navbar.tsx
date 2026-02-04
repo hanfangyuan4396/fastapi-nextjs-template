@@ -3,11 +3,23 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { LogOutIcon } from "lucide-react";
+import { useMemo, useState } from "react";
 
 import { cn } from "@/lib/utils";
 import { LocaleSwitcher } from "./locale-switcher";
 import { logout } from "@/service/auth";
 import { clearAccessToken, getCurrentUserRole, Role } from "@/lib/auth";
+import { useCurrentUser } from "@/lib/use-current-user";
+import { ChangePasswordDialog } from "@/components/change-password-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const baseLinks = [
   { href: "/", labelKey: "nav.home" },
@@ -19,6 +31,14 @@ export function Navbar() {
   const t = useTranslations();
   const router = useRouter();
   const role = getCurrentUserRole();
+  const { user } = useCurrentUser();
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
+
+  const displayName = user?.username || t("nav.userUnknown");
+  const avatarText = useMemo(() => {
+    if (!user?.username) return "?";
+    return user.username.trim().charAt(0).toUpperCase() || "?";
+  }, [user?.username]);
 
   // 登录页不显示导航栏
   if (pathname === "/login" || pathname?.startsWith("/login/")) {
@@ -56,21 +76,50 @@ export function Navbar() {
 
         <div className="flex items-center gap-3">
           <LocaleSwitcher />
-          <button
-            className="text-sm text-muted-foreground transition-colors hover:text-primary"
-            onClick={async () => {
-              try {
-                await logout();
-              } finally {
-                clearAccessToken();
-                router.replace("/login");
-              }
-            }}
-          >
-            {t("nav.logout")}
-          </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className="flex items-center gap-3 rounded-full border border-transparent px-2 py-1 text-sm transition-colors hover:border-border hover:bg-accent/50"
+                type="button"
+              >
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
+                  {avatarText}
+                </div>
+                <span className="max-w-[180px] truncate text-foreground">
+                  {displayName}
+                </span>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel className="text-xs text-muted-foreground">
+                {t("nav.account")}
+              </DropdownMenuLabel>
+              <DropdownMenuItem onSelect={() => setChangePasswordOpen(true)}>
+                {t("nav.changePassword")}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onSelect={async () => {
+                  try {
+                    await logout();
+                  } finally {
+                    clearAccessToken();
+                    router.replace("/login");
+                  }
+                }}
+              >
+                <LogOutIcon className="h-4 w-4" />
+                {t("nav.logout")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
+
+      <ChangePasswordDialog
+        open={changePasswordOpen}
+        onClose={() => setChangePasswordOpen(false)}
+      />
     </header>
   );
 }

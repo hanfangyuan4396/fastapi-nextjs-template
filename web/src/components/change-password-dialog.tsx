@@ -76,10 +76,7 @@ export function ChangePasswordDialog({
   if (!open) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 px-4 py-6"
-      onClick={handleClose}
-    >
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 px-4 py-6">
       <div
         className="w-full max-w-md rounded-2xl border bg-background p-6 shadow-xl"
         onClick={(event) => event.stopPropagation()}

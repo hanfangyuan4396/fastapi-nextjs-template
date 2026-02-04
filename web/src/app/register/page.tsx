@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { useTranslations } from "next-intl";
+import { EyeIcon, EyeOffIcon } from "lucide-react";
 
 import {
   sendRegisterCode,
@@ -27,6 +28,8 @@ export default function RegisterPage() {
   const [isSendingCode, setIsSendingCode] = useState(false);
   const [cooldown, setCooldown] = useState(0);
   const [errorMsg, setErrorMsg] = useState<string>("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const {
     register,
@@ -184,14 +187,27 @@ export default function RegisterPage() {
           <label htmlFor="password" className="block text-sm font-medium">
             {t("auth.register.password")}
           </label>
-          <input
-            id="password"
-            type="password"
-            className="w-full rounded-md border px-3 py-2 outline-none"
-            {...register("password", {
-              required: t("auth.register.errors.passwordRequired"),
-            })}
-          />
+          <div className="relative">
+            <input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              className="w-full rounded-md border px-3 py-2 pr-12 outline-none"
+              {...register("password", {
+                required: t("auth.register.errors.passwordRequired"),
+              })}
+            />
+            <button
+              type="button"
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground hover:text-foreground"
+              onClick={() => setShowPassword((prev) => !prev)}
+            >
+              {showPassword ? (
+                <EyeOffIcon className="h-4 w-4" />
+              ) : (
+                <EyeIcon className="h-4 w-4" />
+              )}
+            </button>
+          </div>
           {errors.password?.message ? (
             <p className="text-xs text-red-500">{errors.password.message}</p>
           ) : null}
@@ -201,14 +217,27 @@ export default function RegisterPage() {
           <label htmlFor="confirmPassword" className="block text-sm font-medium">
             {t("auth.register.confirmPassword")}
           </label>
-          <input
-            id="confirmPassword"
-            type="password"
-            className="w-full rounded-md border px-3 py-2 outline-none"
-            {...register("confirmPassword", {
-              required: t("auth.register.errors.confirmPasswordRequired"),
-            })}
-          />
+          <div className="relative">
+            <input
+              id="confirmPassword"
+              type={showConfirmPassword ? "text" : "password"}
+              className="w-full rounded-md border px-3 py-2 pr-12 outline-none"
+              {...register("confirmPassword", {
+                required: t("auth.register.errors.confirmPasswordRequired"),
+              })}
+            />
+            <button
+              type="button"
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground hover:text-foreground"
+              onClick={() => setShowConfirmPassword((prev) => !prev)}
+            >
+              {showConfirmPassword ? (
+                <EyeOffIcon className="h-4 w-4" />
+              ) : (
+                <EyeIcon className="h-4 w-4" />
+              )}
+            </button>
+          </div>
           {errors.confirmPassword?.message ? (
             <p className="text-xs text-red-500">
               {errors.confirmPassword.message}

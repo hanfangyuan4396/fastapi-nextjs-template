@@ -5,7 +5,10 @@
     "students": "Students",
     "studentsManagement": "Students Management",
     "siteName": "fastapi-nextjs-template",
-    "logout": "Logout"
+    "logout": "Logout",
+    "account": "Account",
+    "changePassword": "Change password",
+    "userUnknown": "Unknown user"
   },
   "footer": {
     "copyright": "© {year} fastapi-nextjs-template",
@@ -15,6 +18,7 @@
     "loading": "Loading...",
     "noData": "No data",
     "refresh": "Refresh",
+    "cancel": "Cancel",
     "toast": {
       "createSuccess": "Created successfully",
       "createFail": "Create failed",

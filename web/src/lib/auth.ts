@@ -5,6 +5,7 @@ export enum Role {
 export type UserRole = Role | null;
 
 const STORAGE_ACCESS_TOKEN_KEY = "access_token";
+const AUTH_CHANGED_EVENT = "auth:changed";
 
 let currentAccessToken: AccessToken = null;
 let currentUserRole: UserRole = null;
@@ -63,6 +64,7 @@ export function setAccessToken(token: string): void {
       // 忽略存储失败
     }
   }
+  emitAuthChanged();
 }
 
 export function getAccessToken(): AccessToken {
@@ -97,5 +99,19 @@ export function clearAccessToken(): void {
     } catch {
       // 忽略清理失败
     }
+  }
+  emitAuthChanged();
+}
+
+export function getAuthChangedEventName(): string {
+  return AUTH_CHANGED_EVENT;
+}
+
+export function emitAuthChanged(): void {
+  if (!isBrowser()) return;
+  try {
+    window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
+  } catch {
+    // 忽略事件派发失败
   }
 }

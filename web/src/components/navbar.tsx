@@ -31,7 +31,7 @@ export function Navbar() {
   const t = useTranslations();
   const router = useRouter();
   const role = getCurrentUserRole();
-  const { user } = useCurrentUser();
+  const { user, loading } = useCurrentUser();
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
 
   const displayName = user?.username || t("nav.userUnknown");
@@ -39,6 +39,7 @@ export function Navbar() {
     if (!user?.username) return "?";
     return user.username.trim().charAt(0).toUpperCase() || "?";
   }, [user?.username]);
+  const isUserLoading = loading && !user;
 
   // 登录页不显示导航栏
   if (pathname === "/login" || pathname?.startsWith("/login/")) {
@@ -82,12 +83,20 @@ export function Navbar() {
                 className="flex items-center gap-3 rounded-full border border-transparent px-2 py-1 text-sm transition-colors hover:border-border hover:bg-accent/50"
                 type="button"
               >
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
-                  {avatarText}
-                </div>
-                <span className="max-w-[180px] truncate text-foreground">
-                  {displayName}
-                </span>
+                {isUserLoading ? (
+                  <div className="h-8 w-8 animate-pulse rounded-full bg-muted" aria-hidden="true" />
+                ) : (
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
+                    {avatarText}
+                  </div>
+                )}
+                {isUserLoading ? (
+                  <span className="h-4 w-24 animate-pulse rounded bg-muted" aria-hidden="true" />
+                ) : (
+                  <span className="max-w-[180px] truncate text-foreground">
+                    {displayName}
+                  </span>
+                )}
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">

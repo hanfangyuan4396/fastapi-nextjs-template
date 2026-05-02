@@ -6,14 +6,16 @@ on:
     paths:
       - 'api/**'
       - 'api/pytest.ini'
-      - 'api/requirements.txt'
+      - 'api/pyproject.toml'
+      - 'api/uv.lock'
       - '.github/workflows/api-tests.yaml'
   push:
     branches: [ main ]
     paths:
       - 'api/**'
       - 'api/pytest.ini'
-      - 'api/requirements.txt'
+      - 'api/pyproject.toml'
+      - 'api/uv.lock'
       - '.github/workflows/api-tests.yaml'
   merge_group:
     # 当使用 GitHub 合并队列 (Merge Queue) 时触发
@@ -39,16 +41,21 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-          cache: 'pip'
-          cache-dependency-path: api/requirements.txt
 
-      - name: Install dependencies
-        run: pip install -r requirements.txt
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v8
+        with:
+          version: "0.11.8"
+          enable-cache: true
+          cache-dependency-glob: api/uv.lock
+
+      - name: Sync dependencies
+        run: uv sync --frozen
 
       - name: Run tests with coverage
         run: |
           set -euo pipefail
-          python -m pytest -q \
+          uv run pytest -q \
             --cov=./ \
             --cov-report=term-missing \
             --cov-report=json:coverage.json
@@ -57,11 +64,11 @@ jobs:
         if: always()
         run: |
           set -euo pipefail
-          TOTAL_COVERAGE=$(python -c 'import json; d=json.load(open("coverage.json")); print(d.get("totals",{}).get("percent_covered_display") or d.get("totals",{}).get("percent_covered") or "")')
+          TOTAL_COVERAGE=$(uv run python -c 'import json; d=json.load(open("coverage.json")); print(d.get("totals",{}).get("percent_covered_display") or d.get("totals",{}).get("percent_covered") or "")')
           echo "### Test Coverage Summary :test_tube:" >> $GITHUB_STEP_SUMMARY
           if [ -n "$TOTAL_COVERAGE" ]; then
             echo "Total Coverage: ${TOTAL_COVERAGE}%" >> $GITHUB_STEP_SUMMARY
           else
             echo "Total Coverage: N/A" >> $GITHUB_STEP_SUMMARY
           fi
-          python -m coverage report --format=markdown >> $GITHUB_STEP_SUMMARY || true
+          uv run coverage report --format=markdown >> $GITHUB_STEP_SUMMARY || true

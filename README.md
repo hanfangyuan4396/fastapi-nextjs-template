@@ -41,7 +41,8 @@
 │  ├─ migrations/            # 数据库迁移（Alembic）
 │  ├─ tests/                 # 单元测试
 │  ├─ Dockerfile
-│  └─ requirements.txt
+│  ├─ pyproject.toml
+│  └─ uv.lock
 │
 ├─ web/                      # 前端应用（Next.js）
 │  ├─ src/
@@ -96,7 +97,7 @@
 
 ### 测试
 
-- 后端：在 `api/` 目录执行 `pytest`
+- 后端：在 `api/` 目录执行 `uv run pytest`
 - 前端：在 `web/` 目录执行 `npm run test`（覆盖率：`npm run test:coverage`）
 
 ### GitHub Actions 变量与 Secrets 表

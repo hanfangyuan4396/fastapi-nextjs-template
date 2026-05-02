@@ -7,14 +7,14 @@
 ### 安装依赖
 
 ```bash
-pip install -r requirements.txt
+uv sync
 ```
 
 ### 运行应用
 
 #### 方法1：直接运行Python文件
 ```bash
-python app.py
+uv run python app.py
 ```
 
 
@@ -34,42 +34,30 @@ python app.py
 
 建议在 `api/` 目录执行以下命令。
 
-安装（一次性）：
-
-```bash
-pip install --upgrade ruff==0.12.8
-```
-
 检查（仅报告问题）：
 
 ```bash
-ruff check .
+uv run ruff check .
 ```
 
 自动修复并格式化：
 
 ```bash
-ruff check . --fix && ruff format .
+uv run ruff check . --fix && uv run ruff format .
 ```
 
 仅格式化：
 
 ```bash
-ruff format .
+uv run ruff format .
 ```
 
 ### pre-commit（代码质量检查）
 
-若未安装 pre-commit，请先：
-
-```bash
-pip install pre-commit==4.3.0
-```
-
 安装 Git 钩子并预下载所有检查工具（推荐）：
 
 ```bash
-pre-commit install --install-hooks
+uv run pre-commit install --install-hooks
 ```
 
 > **说明**：
@@ -80,21 +68,21 @@ pre-commit install --install-hooks
 对全仓库运行一遍钩子（验证配置）：
 
 ```bash
-pre-commit run --all-files
+uv run pre-commit run --all-files
 ```
 
 手动运行特定钩子：
 
 ```bash
 # 只运行 ruff 检查
-pre-commit run ruff-check --all-files
+uv run pre-commit run ruff-check --all-files
 
 # 只运行代码格式化
-pre-commit run ruff-format --all-files
+uv run pre-commit run ruff-format --all-files
 ```
 
 ### pytest（单元测试）
 
 ```bash
-pytest # api目录下执行
+uv run pytest # api目录下执行
 ```

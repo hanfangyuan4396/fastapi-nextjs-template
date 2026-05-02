@@ -29,6 +29,8 @@ jobs:
           filters: |
             api:
               - 'api/**'
+              - 'api/pyproject.toml'
+              - 'api/uv.lock'
             web:
               - 'web/**'
             workflow:

@@ -3,9 +3,9 @@ Alembic migrations for FastAPI/SQLAlchemy.
 # 前置要求
 
 ## 安装依赖
-确保已安装alembic：
+确保已同步后端依赖：
 ```bash
-pip install alembic
+cd api && uv sync
 ```
 
 ## 工作目录
@@ -30,7 +30,7 @@ cd api/migrations
 ```bash
 git switch main  # 切换到main分支
 git pull # 拉取最新代码
-alembic upgrade head  # 确保本地数据库是最新状态
+uv run alembic upgrade head  # 确保本地数据库是最新状态
 git switch -c xxx  # 创建并切换到新的开发分支
 ```
 
@@ -45,7 +45,7 @@ git switch -c xxx  # 创建并切换到新的开发分支
 基于 ORM 自动对比生成，适用于标准的表结构变更：
 
 ```bash
-alembic revision --autogenerate -m "简要描述此次变更内容"
+uv run alembic revision --autogenerate -m "简要描述此次变更内容"
 ```
 
 #### 2.3.2. 手动创建空迁移脚本
@@ -53,7 +53,7 @@ alembic revision --autogenerate -m "简要描述此次变更内容"
 适用于需要执行复杂数据迁移、原生SQL操作或特殊需求时：
 
 ```bash
-alembic revision -m "简要描述此次变更内容"
+uv run alembic revision -m "简要描述此次变更内容"
 ```
 
 **注意**：手动创建的迁移脚本中 `upgrade()` 和 `downgrade()` 函数为空，需要手动编写具体的数据库操作代码。
@@ -68,7 +68,7 @@ alembic revision -m "简要描述此次变更内容"
 ### 2.5. 执行迁移脚本
 
 ```bash
-alembic upgrade head
+uv run alembic upgrade head
 ```
 
 ### 2.6. 验证变更
@@ -145,12 +145,12 @@ DB_DATABASE=fastapi-nextjs            # PostgreSQL数据库
    - **解决冲突**：
      ```bash
      # 获取所有头部版本
-     alembic heads
+     uv run alembic heads
 
      # 合并多个头部版本（将所有 head 合并为一条）
-     alembic merge -m "merge migrations" heads
+     uv run alembic merge -m "merge migrations" heads
      # 或合并特定版本
-     alembic merge -m "merge migrations" 版本号1 版本号2
+     uv run alembic merge -m "merge migrations" 版本号1 版本号2
      ```
 
 2. **冲突解决示例**：
@@ -162,22 +162,22 @@ DB_DATABASE=fastapi-nextjs            # PostgreSQL数据库
    当合并代码时:
    ```bash
    # 合并后会看到两个头部版本
-   alembic heads
+   uv run alembic heads
    # 输出: a123 (head), b456 (head)
 
    # 创建合并迁移
-   alembic merge -m "merge migrations" a123 b456
+   uv run alembic merge -m "merge migrations" a123 b456
    # 这会创建一个新的迁移文件,仅包含依赖关系,不包含实际操作
 
    # 应用所有迁移
-   alembic upgrade head
+   uv run alembic upgrade head
    ```
 
 3. **合并后的验证**：
    - 合并迁移创建后，必须在本地开发环境验证
    - 检查数据库表结构是否包含所有期望的变更
    - 确认应用程序能正确访问所有新增或修改的字段
-   - 如果合并后出现问题，可使用 `alembic downgrade` 回滚
+   - 如果合并后出现问题，可使用 `uv run alembic downgrade` 回滚
 
 #### 3.3.3. 不同类型迁移的处理策略
 
@@ -230,10 +230,10 @@ DB_DATABASE=fastapi-nextjs            # PostgreSQL数据库
 - **回滚指定版本**：
   ```bash
   # 回滚到特定版本
-  alembic downgrade 版本号
+  uv run alembic downgrade 版本号
 
   # 回滚最近的一个迁移
-  alembic downgrade -1
+  uv run alembic downgrade -1
   ```
 
 #### 3.3.5. 处理特殊情况
@@ -244,16 +244,16 @@ DB_DATABASE=fastapi-nextjs            # PostgreSQL数据库
   - 删除开发/测试/生产数据库的 alembic_version 表
   - 重新执行 `revision --autogenerate` 与 `upgrade head`
     ```bash
-    alembic revision --autogenerate -m "reset init"
-    alembic upgrade head
+    uv run alembic revision --autogenerate -m "reset init"
+    uv run alembic upgrade head
     ```
   - 注意：生产环境重置风险极高，应谨慎评估
 
 - **脱离版本控制的变更处理**：
   - 发现数据库被直接修改时，可创建空迁移或使用 stamp 记录当前状态
-  - 使用 `alembic stamp` 将数据库标记为特定版本
+  - 使用 `uv run alembic stamp` 将数据库标记为特定版本
     ```bash
-    alembic stamp 版本号
+    uv run alembic stamp 版本号
     ```
   - 从此版本继续维护迁移历史
 

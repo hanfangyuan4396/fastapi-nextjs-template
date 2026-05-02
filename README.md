@@ -124,3 +124,6 @@ cat >> ~/.ssh/authorized_keys << 'EOF'
 # 粘贴公钥内容（通常是 *.pub 文件里的那一行）
 EOF
 ```
+
+### 调整项目名称
+告诉AI"搜索当前项目的docker compose，workflows配置等文件，把fastapi-nextjs-template改成xx"

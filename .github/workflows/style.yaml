@@ -31,6 +31,8 @@ jobs:
           filters: |
             api:
               - 'api/**'
+              - 'api/pyproject.toml'
+              - 'api/uv.lock'
             web:
               - 'web/**'
             workflow:
@@ -53,19 +55,28 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install Ruff
-        run: pip install ruff==0.12.8
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v8.1.0
+        with:
+          version: "0.11.8"
+          enable-cache: true
+          cache-dependency-glob: api/uv.lock
+
+      - name: Sync dependencies
+        working-directory: api
+        run: uv sync --frozen
 
       - name: Ruff check
+        working-directory: api
         run: |
-          ruff --version
-          ruff check ./api
-          ruff format --check ./api
+          uv run ruff --version
+          uv run ruff check .
+          uv run ruff format --check .
 
       - name: Lint hints
         if: failure()
         run: |
-          echo '请运行: ruff check --fix ./api && ruff format ./api 来自动修复可修复的问题。'
+          echo '请在 api 目录运行: uv run ruff check --fix . && uv run ruff format . 来自动修复可修复的问题。'
           echo '若仍有未修复的问题，请根据 Ruff 的输出逐项手动修复剩余问题。'
 
 

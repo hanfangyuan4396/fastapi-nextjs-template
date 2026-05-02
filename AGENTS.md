@@ -8,10 +8,10 @@
 
 ## 构建、测试与开发命令
 后端（除非另有说明，从仓库根目录执行）：
-- `pip install -r api/requirements.txt` 安装 Python 依赖。
-- `python api/app.py` 启动 API，访问 `http://localhost:8000`。
-- `pytest`（在 `api/` 目录执行）运行后端测试。
-- `ruff check .` / `ruff format .`（在 `api/` 目录执行）进行 lint 与格式化。
+- `cd api && uv sync` 安装 Python 依赖。
+- `cd api && uv run python app.py` 启动 API，访问 `http://localhost:8000`。
+- `cd api && uv run pytest` 运行后端测试。
+- `cd api && uv run ruff check .` / `cd api && uv run ruff format .` 进行 lint 与格式化。
 
 前端：
 - `cd web && npm install` 安装依赖。
@@ -43,10 +43,10 @@ Docker：
 ## 重要，必须遵守的规则
 - 请使用中文回答我的提问
 - 循序渐进写代码，实现一部分代码停下来总结一下你的代码，方便我及时review
-- python环境路径为 /home/hfy/miniconda3/envs/xxx/bin/python，使用此环境执行python测试、数据库迁移等操作
-- 执行测试时需要在api目录下执行pytest命令
-- 使用命令创建alembic迁移脚本，不要直接生成：alembic revision --autogenerate -m "简要描述此次变更内容"，并且要cd api/migrations目录下执行命令
-- 对于后端代码，要执行ruff和pytest命令，确保代码质量
+- 后端 Python 依赖使用 `uv` 管理，执行 Python 测试、数据库迁移等操作时使用 `uv run`
+- 执行测试时需要在 `api` 目录下执行 `uv run pytest`
+- 使用命令创建alembic迁移脚本，不要直接生成：`uv run alembic revision --autogenerate -m "简要描述此次变更内容"`，并且要cd api/migrations目录下执行命令
+- 对于后端代码，要执行 `uv run ruff check .`、`uv run ruff format --check .` 和 `uv run pytest` 命令，确保代码质量
 - 对于前端代码，要执行lint、test、build命令，确保代码质量
 
 ## 拆分与验证流程（前端）

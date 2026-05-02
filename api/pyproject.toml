@@ -1,0 +1,29 @@
+[project]
+name = "fastapi-nextjs-api"
+version = "0.1.0"
+description = "FastAPI backend for fastapi-nextjs-template"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "aiosqlite==0.21.0",
+    "alembic==1.16.4",
+    "argon2-cffi==25.1.0",
+    "fastapi==0.116.1",
+    "httpx==0.28.1",
+    "psycopg[binary]==3.2.9",
+    "pydantic[email]==2.11.7",
+    "pyjwt==2.10.1",
+    "python-dotenv==1.1.1",
+    "redis==7.0.1",
+    "sqlalchemy==2.0.43",
+    "uvicorn[standard]==0.35.0",
+]
+
+[dependency-groups]
+dev = [
+    "pre-commit==4.3.0",
+    "pytest==8.4.1",
+    "pytest-asyncio==1.2.0",
+    "pytest-cov==6.2.1",
+    "pytest-mock==3.14.1",
+    "ruff==0.12.8",
+]

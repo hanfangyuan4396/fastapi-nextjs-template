@@ -31,6 +31,7 @@ Docker：
 - 后端测试位于 `api/tests/`，使用 pytest。需要时添加 `@pytest.mark.unit` 或 `@pytest.mark.integration`。
 - 前端测试使用 Vitest，测试文件放在 `web/src/` 下，命名为 `*.test.ts` 或 `*.test.tsx`。
 - `cd web && npm run test` 单次运行，`npm run test:coverage` 输出覆盖率。
+- 生成测试代码时，需要为每个测试用例添加注释，说明该用例测试的功能；测试函数中的关键代码也要添加注释，说明断言、准备数据或交互步骤的目的。
 
 ## 提交与合并请求规范
 - Commit 历史遵循 Conventional Commits，并可带 scope（如 `feat(web): add students flow`、`fix(ci): update workflow`）。保持简短、动词开头。

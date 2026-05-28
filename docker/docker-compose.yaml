@@ -41,6 +41,7 @@ services:
       - idle_in_transaction_session_timeout=3600000
     volumes:
       - ./volumes/postgres/data:/var/lib/postgresql/data
+    restart: unless-stopped
 
   redis:
     image: registry.cn-hangzhou.aliyuncs.com/hanfangyuan/redis:8.0-alpine

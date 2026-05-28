@@ -13,7 +13,7 @@ from sqlalchemy.orm import sessionmaker
 from .config import settings
 from .db_url import build_async_database_url, build_database_url
 
-# 同步引擎与会话工厂（仅用于 CLI 脚本如 seed_users.py）
+# 同步引擎与会话工厂（仅用于 CLI 脚本，如 scripts/seed_users.py）
 _database_url = build_database_url()
 
 engine = create_engine(

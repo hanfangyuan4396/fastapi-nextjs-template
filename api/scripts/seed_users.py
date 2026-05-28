@@ -1,4 +1,4 @@
-# 使用方法: python -m utils.seed_users
+# 使用方法: python -m scripts.seed_users
 
 from __future__ import annotations
 

@@ -20,12 +20,12 @@
   - 查询用户表是否已存在同名账号；若存在则跳过，不更新密码。
   - 若不存在，使用安全哈希写入数据库，角色设置为 `admin`，`is_active` 为 `true`。
 - 日志中不输出完整密码，仅提示已读取配置。
-- 初始化脚本可参考现有 `api/utils/seed_users.py`（可复用哈希与用户创建逻辑，保持“仅创建不更新密码”的行为）。
-- `api/utils/seed_users.py` 提供 `create_user_if_missing`，仅创建用户并在已存在时直接跳过。
+- 初始化脚本可参考现有 `api/scripts/seed_users.py`（可复用哈希与用户创建逻辑，保持“仅创建不更新密码”的行为）。
+- `api/scripts/seed_users.py` 提供 `create_user_if_missing`，仅创建用户并在已存在时直接跳过。
 
 ## 已实现改动（同步记录）
-- 启动脚本：`api/bin/boot.sh` 在 `INIT_ADMIN_ENABLED=true` 时执行 `python -m utils.seed_users`，失败会阻断启动。
-- 初始化脚本：`api/utils/seed_users.py` 仅支持从环境变量创建默认管理员，不再包含 dev/test 默认账号逻辑。
+- 启动脚本：`api/bin/boot.sh` 在 `INIT_ADMIN_ENABLED=true` 时执行 `python -m scripts.seed_users`，失败会阻断启动。
+- 初始化脚本：`api/scripts/seed_users.py` 仅支持从环境变量创建默认管理员，不再包含 dev/test 默认账号逻辑。
 - 用户创建函数：将 `upsert_user` 重命名为 `create_user_if_missing`，只创建不更新。
 - Docker Compose：`docker/docker-compose.yaml` 的 `api` 服务加入 `INIT_ADMIN_ENABLED`。
 - 环境变量示例：`api/.env.example` 增加 `DEFAULT_ADMIN_USERNAME`、`DEFAULT_ADMIN_PASSWORD`。

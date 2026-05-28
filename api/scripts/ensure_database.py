@@ -6,22 +6,20 @@ import os
 
 import psycopg
 from psycopg import sql
-from sqlalchemy import URL
 
 from utils.config import settings
 from utils.logging import get_logger, init_logging
 
 
-def build_maintenance_database_url() -> URL:
-    """Build a PostgreSQL URL that connects to the maintenance database."""
-    return URL.create(
-        "postgresql",
-        username=settings.DB_USERNAME,
-        password=settings.DB_PASSWORD,
-        host=settings.DB_HOST,
-        port=int(settings.DB_PORT),
-        database=os.getenv("DB_MAINTENANCE_DATABASE", "postgres"),
-    )
+def build_maintenance_connection_kwargs() -> dict[str, object]:
+    """Build psycopg connection kwargs for the maintenance database."""
+    return {
+        "dbname": os.getenv("DB_MAINTENANCE_DATABASE", "postgres"),
+        "user": settings.DB_USERNAME,
+        "password": settings.DB_PASSWORD,
+        "host": settings.DB_HOST,
+        "port": int(settings.DB_PORT),
+    }
 
 
 def database_exists(connection: psycopg.Connection, database_name: str) -> bool:
@@ -45,9 +43,9 @@ def ensure_database_exists(logger) -> str:
         str: `created` if the database was created, or `skipped` if it already exists.
     """
     database_name = settings.DB_DATABASE
-    maintenance_url = build_maintenance_database_url()
+    connection_kwargs = build_maintenance_connection_kwargs()
 
-    with psycopg.connect(str(maintenance_url), autocommit=True) as connection:
+    with psycopg.connect(**connection_kwargs, autocommit=True) as connection:
         if database_exists(connection, database_name):
             logger.info("database init result=skipped database=%s", database_name)
             return "skipped"

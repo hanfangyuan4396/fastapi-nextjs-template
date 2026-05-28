@@ -3,11 +3,17 @@ from unittest.mock import MagicMock, Mock
 from scripts import ensure_database
 
 
-def test_build_maintenance_database_url_uses_psycopg_compatible_scheme():
-    """测试维护库连接串使用 psycopg 可直接识别的 PostgreSQL scheme。"""
-    url = ensure_database.build_maintenance_database_url()
+def test_build_maintenance_connection_kwargs_uses_configured_database_settings():
+    """测试维护库连接参数直接使用当前数据库配置。"""
+    kwargs = ensure_database.build_maintenance_connection_kwargs()
 
-    assert url.drivername == "postgresql"
+    assert kwargs == {
+        "dbname": "postgres",
+        "user": ensure_database.settings.DB_USERNAME,
+        "password": ensure_database.settings.DB_PASSWORD,
+        "host": ensure_database.settings.DB_HOST,
+        "port": int(ensure_database.settings.DB_PORT),
+    }
 
 
 def test_database_exists_returns_true_when_database_found():
@@ -58,6 +64,10 @@ def test_ensure_database_exists_skips_existing_database(monkeypatch):
     result = ensure_database.ensure_database_exists(logger)
 
     assert result == "skipped"
+    ensure_database.psycopg.connect.assert_called_once_with(
+        **ensure_database.build_maintenance_connection_kwargs(),
+        autocommit=True,
+    )
     ensure_database.create_database.assert_not_called()
     logger.info.assert_called_once_with(
         "database init result=skipped database=%s",

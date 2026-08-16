@@ -109,12 +109,8 @@ async function requestWithAutoRefresh<T>(
       // 刷新失败：清理并跳登录
       clearAccessToken();
       if (typeof window !== "undefined") {
-        const loginUrl = "/login";
-        try {
-          window.location.assign(loginUrl); // 使用 assign 以便历史可回退
-        } catch {
-          window.location.href = loginUrl;
-        }
+        // 401 后需要整页跳登录；服务层无法使用 useRouter/redirect
+        window.location.replace("/login");
       }
       return { code: 40100, message: "unauthorized", data: null } as ApiResponse<T>;
     }

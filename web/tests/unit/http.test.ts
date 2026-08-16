@@ -15,13 +15,13 @@ vi.mock("@/lib/auth", () => ({
   }),
 }));
 
-function mockJsonResponse(body: unknown, status = 200) {
+function mockJsonResponse(body: unknown, status = 200): Response {
   return {
     status,
     ok: status >= 200 && status < 300,
     statusText: status === 200 ? "OK" : "Error",
     json: async () => body,
-  };
+  } as unknown as Response;
 }
 
 describe("httpGet", () => {

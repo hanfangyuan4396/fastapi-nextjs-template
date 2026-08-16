@@ -14,12 +14,15 @@ describe("students integration", () => {
 
   it("refreshes token and retries listStudents", async () => {
     let callCount = 0;
-    let lastUrl: URL | null = null;
+    let page: string | null = null;
+    let pageSize: string | null = null;
 
     server.use(
       http.get(`${baseUrl}/students`, ({ request }) => {
         callCount += 1;
-        lastUrl = new URL(request.url);
+        const url = new URL(request.url);
+        page = url.searchParams.get("page");
+        pageSize = url.searchParams.get("page_size");
         const auth = request.headers.get("authorization");
         if (auth !== "Bearer test-token") {
           return new HttpResponse(null, { status: 401 });
@@ -35,8 +38,8 @@ describe("students integration", () => {
     const res = await listStudents({ page: 2, page_size: 10 });
 
     expect(callCount).toBe(2);
-    expect(lastUrl?.searchParams.get("page")).toBe("2");
-    expect(lastUrl?.searchParams.get("page_size")).toBe("10");
+    expect(page).toBe("2");
+    expect(pageSize).toBe("10");
     expect(getAccessToken()).toBe("test-token");
     expect(res.code).toBe(0);
   });
